@@ -1,0 +1,292 @@
+options {
+    STATIC = false;
+    UNICODE_INPUT = true;
+    
+    }
+
+PARSER_BEGIN(Adder)
+import java.io.*;
+
+class Adder {
+    static public void main(String[] args) {
+        for (String arg : args) {
+            try {
+                System.out.println(evaluate(arg));
+            } catch (ParseException ex) {
+                System.err.println(ex.getMessage());
+            }
+        } 
+    }
+
+    static public long evaluate(String src) throws ParseException {
+        Reader reader = new StringReader(src);
+        return new Adder(reader).expr();
+    }
+}
+PARSER_END(Adder)
+
+SPECIAL_TOKEN: { <[" ", "\t", "\r", "\n", "\f"]> }
+SPECIAL_TOKEN: { <LINE_COMMENT: "//" (~["\n", "\r"])* ("\n" | "\r" | "\n\r")?> }    //扫描单行注释
+
+//扫描多行注释
+MORE: { <"/*"> : IN_BLOCK_COMMENT }
+<IN_BLOCK_COMMENT> MORE: { < ~[] > }
+<IN_BLOCK_COMMENT> SPECIAL_TOKEN: { <BLOCK_COMMENT: "*/"> : DEFAULT }
+
+//扫描字符串常量
+MORE: { <"\""> : IN_STRING }
+<IN_STRING> MORE:  {
+    <(~["\"", "\\", "\n", "\r"])+>  //匹配除这些字符以外的任意一个字符
+    | <"\\" (["0"-"7"]{3})>         //匹配\007这样的字符串，当成一个八进制数来处理
+    | <"\\" ~[]>
+    //匹配\n,\r,\t等等这样的转义字符,这里有个问题是\9这样的字符也会匹配，但是似乎没什么意义啊
+}
+<IN_STRING> TOKEN: { <STRING: "\""> : DEFAULT }
+
+//扫描字符串字面量
+MORE: { <"'"> : IN_CHARACTER }
+<IN_CHARACTER> MORE: {
+    < ~["'", "\\", "\n", "\r"] > : CHARACTER_TERM
+    | <"\\" (["0"-"7"]{3})> : CHARACTER_TERM
+    | <"\\" ~[]> : CHARACTER_TERM
+}
+<CHARACTER_TERM> TOKEN: { <CHARACTER: "'" : DEFAULT }
+
+
+TOKEN: {
+//保留字
+        <VOID   : "void">
+        <CHAR   : "char">
+        <SHORT  : "short">
+        <INT    : "int">
+        <LONG   : "long">
+        <STRUCT : "struct">
+        <UNION  : "union">
+        <ENUM   : "enum">
+        <STATIC : "static">
+        <EXTERN : "extern">
+        <CONST  : "const">
+        <SIGNED : "signed">
+        <UNSIGNED : "unsigned">
+        <IF     : "if">
+        <ELSE   : "else">
+        <SWITCH : "switch">
+        <CASE   : "case">
+        <DEFAULT_   : "default">
+        <WHILE  : "while">
+        <DO     : "do">
+        <FOR    : "for">
+        <RETURN : "return">
+        <BREAK  : "break">
+        <CONTINUE   : "continue">
+        <GOTO   : "goto">
+        <TYPEDEF    : "typedef">
+        <IMPORT : "import">
+        <SIZEOF : "sizeof">
+        <INTEGER: (["0"-"9"])+>
+        <IDENTIFIER: ["a-z", "A-Z", "_"] (["a-z", "A-Z", "0-9", "_"])*>
+       }
+
+compilation_unit() : {}
+{
+    import_stmts() top_defs() <EOF>
+}
+
+import_stmts() : {}
+{
+    (import_stmt())*
+}
+
+import_stmt() : {}
+{
+    "import" name() ("." name())* ";"
+}
+
+name() : {}
+{
+    <IDENTIFIER>
+}
+
+top_defs(): {}
+{
+    ( LOOKAHEAD(storage() typeref() <IDENTIFIER> "(")
+            defun()
+    | LOOKAHEAD(3)
+      defvars()
+    | defconst()
+    | defstruct()
+    | defunion()
+    | typedef()
+    )*
+
+}
+
+defvars() : {}
+{
+    storage() type() name()  ["=" expr()]
+                            ("," name() ["=" expr()])* ";"
+}
+
+storage() : {}
+{
+    [<STATIC>]
+}
+
+defun() : {}
+{
+    storage() type() name() "(" params() ")" block()
+}
+
+params() : {}
+{
+    LOOKAHEAD(<VOID> ")") <VOID>    //选项1
+    | fixedparams() ["," "..."]     //选项2
+}
+
+block() : {}
+{
+    "{" defvar_list() stmts() "}"
+}
+
+defstruct() : {}
+{
+    <STRUCT> name() member_list() ";"
+}
+
+defunion() : {}
+{
+    <UNION> name() member_list() ";"
+}
+
+member_list() : {}
+{
+    "{" (slot() ";")* "}"
+}
+
+slot() : {}
+{
+    type() name()
+}
+
+typedef() : {}
+{
+    <TYPEDEF> typeref() <IDENTIFIER> ";"
+}
+
+type() : {}
+{
+    typeref()
+}
+
+typeref() : {}
+{
+    typeref_base()
+    ( LOOKAHEAD(2) "[" "]"  //不定长数组
+    | "[" <INTEGER> "]" 
+    | "*" 
+    | "(" param_typerefs() ")"
+    )    
+}
+
+typeref_base() : {}
+{
+    <VOID>
+    | <CHAR>
+    | <SHORT>
+    | <INT>
+    | <LONG>
+    | LOOKAHEAD(2) <UNSIGNED> <CHAR>
+    | LOOKAHEAD(2) <UNSIGNED> <SHORT>
+    | LOOKAHEAD(2) <UNSIGNED> <INT>
+    | <UNSIGNED> <LONG>
+    | <STRUCT> <IDENTIFIER>
+    | <UNION> <IDENTIFIER>
+    | LOOKAHEAD({isType(getToken(1).image)}) <IDENTIFIER>
+    
+}
+
+stmts() : {}
+{
+    (stmt())*
+}
+
+stmt() : {}
+{
+    ( ";"
+    | LOOKAHEAD(2) labeled_stmt()
+    | expr() ";"
+    | block()
+    | if_stmt()
+    | while_stmt()
+    | dowhile_stmt()
+    | for_stmt()
+    | switch_stmt()
+    | break_stmt()
+    | continue_stmt()
+    | goto_stmt()
+    | return_stmt()
+    )
+}
+
+labeled_stmt() : {}
+{
+    label() ":" stmt() //存疑，是否是这样
+}
+
+label() : {}
+{
+
+    <IDENTIFIER>
+}
+block() : {}
+{
+    "{" stmts() "}"
+}
+
+dowhile_stmt() : {}
+{
+    <DO> block() <WHILE> "(" expr() ")"
+}
+
+switch_stmt() : {}
+{
+    <SWITCH> "(" expr() ")" "{" (<CASE> expr() ":" stmts())* [<DEFAULT> ":" stmts()] "}"
+}
+
+continue_stmt() : {}
+{
+    <CONTINUE> ";"
+}
+
+goto_stmt() : {}
+{
+    <GOTO> label() ";"
+}
+
+
+//if 语句，lookahead 是为了解决空悬 else 的问题，else 属于最近的 if 语句
+if_stmt() : {}
+{
+    <IF> "(" expr() ")" stmt() [ LOOKAHEAD(1) <ELSE> stmt() ]
+}
+
+while_stmt() : {}
+{
+    <WHILE> "(" expr() ")" stmt()
+}
+
+for_stmt() : {}
+{
+    <FOR> "(" [expr()] ";" [expr()] ";" [expr()] ")" stmt()
+}
+
+break_stmt() : {}
+{
+    <BREAK> ";"
+}
+
+return_stmt() : {}
+{
+    LOOKAHEAD(2) <RETURN> ";"
+    | <RETURN> [expr()] ";"
+}
