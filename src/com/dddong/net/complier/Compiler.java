@@ -1,8 +1,4 @@
-package com.dddong.net;
-
-import jdk.internal.org.xml.sax.ErrorHandler;
-import jdk.internal.org.xml.sax.SAXException;
-import jdk.internal.org.xml.sax.SAXParseException;
+package com.dddong.net.complier;
 
 import java.util.List;
 
@@ -31,8 +27,8 @@ public class Compiler {
 
     public void build(List<SourceFile> srcs, Options opts) throws CompileException {
         for (SourceFile src : srcs) {
-            compile(src.path(), opts.asmFileNameOf(src), opts);
-            assemble(src.path(), opts.objFileNameOf(src), opts);
+//            compile(src.path(), opts.asmFileNameOf(src), opts);
+//            assemble(src.path(), opts.objFileNameOf(src), opts);
 
         }
         link(opts);

@@ -1,0 +1,1249 @@
+options {
+    STATIC = false;
+//    UNICODE_INPUT = true;
+    DEBUG_PARSER = true;
+    }
+
+PARSER_BEGIN(Parser)
+package com.dddong.net.parser;
+import java.io.*;
+import java.util.*;
+
+import com.dddong.net.utils.*;
+import com.dddong.net.ast.*;
+import com.dddong.net.entity.*;
+import com.dddong.net.exception.*;
+import com.dddong.net.type.*;
+
+public class Parser {
+    private String sourceName;
+    private LibraryLoader loader;
+    private ErrorHandler errorHandler;
+    private Set<String> knownTypedefs;
+
+    public Parser(Reader s, String name, LibraryLoader loader, ErrorHandler errorHandler, boolean debug) {
+        this(s);
+        this.sourceName = name;
+        this.loader = loader;
+        this.errorHandler = errorHandler;
+        this.knownTypedefs = new HashSet<String>();
+        if (debug) {
+            enable_tracing();
+        } else {
+            disable_tracing();
+        }
+    }
+
+    static public Declarations parseDeclFile(File file,
+                                             LibraryLoader loader,
+                                             ErrorHandler errorHandler)
+                                             throws SyntaxException,
+                                                    FileException {
+        return parseDeclFile(file, loader, errorHandler, false);
+    }
+
+    static public Declarations parseDeclFile(File file,
+                                             LibraryLoader loader,
+                                             ErrorHandler errorHandler,
+                                             boolean debug)
+                                             throws SyntaxException,
+                                                    FileException {
+        return newFileParser(file, loader, errorHandler, debug).parseDecls();
+    }
+
+
+
+    static public AST parseFile(File file, LibraryLoader loader, ErrorHandler errorHandler, boolean debug)
+                                throws SyntaxException, FileException {
+                                    return newFileParser(file, loader, errorHandler, debug).parse();
+                                }
+
+    static final public String SOURCE_ENCODING = "UTF-8";
+
+    static public Parser newFileParser(File file, LibraryLoader loader, ErrorHandler errorHandler, boolean debug)
+                                        throws FileException
+    {
+        try {
+            BufferedReader r = new BufferedReader(new InputStreamReader(new FileInputStream(file), SOURCE_ENCODING));
+            return new Parser(r, file.getPath(), loader, errorHandler, debug);
+        }
+        catch (FileNotFoundException ex) {
+            throw new FileException(ex.getMessage());
+        }
+        catch (UnsupportedEncodingException ex) {
+            throw new Error("UTF-8 is not supported?: " + ex.getMessage());
+        }
+    }
+
+    public AST parse() throws SyntaxException {
+        try {
+            return compilation_unit();
+        }
+        catch (TokenMgrError err) {
+            throw new SyntaxException(err.getMessage());
+        }
+        catch (ParseException ex) {
+            throw new SyntaxException(ex.getMessage());
+        }
+        catch (LookaheadSuccess err) {
+            throw new SyntaxException("syntax error");
+        }
+    }
+
+    public Declarations parseDecls() throws SyntaxException {
+        try {
+            return declaration_file();
+        }
+        catch (TokenMgrError ex) {
+            throw new SyntaxException(ex.getMessage());
+        }
+        catch (ParseException ex) {
+            throw new SyntaxException(ex.getMessage());
+        }
+    }
+
+    private Location location(Token t) {
+        return new Location(sourceName, t);
+    }
+    // #@@range/newReader{
+    private IntegerLiteralNode integerNode(Location loc, String image) {
+        long i = integerValue(image);
+        if (image.endsWith("UL")) {
+            return new IntegerLiteralNode(loc, IntegerTypeRef.ulongRef(), i);
+        }
+        else if (image.endsWith("L")) {
+            return new IntegerLiteralNode(loc, IntegerTypeRef.longRef(), i);
+        }
+        else if (image.endsWith("U")) {
+            return new IntegerLiteralNode(loc, IntegerTypeRef.uintRef(), i);
+        }
+        else {
+            return new IntegerLiteralNode(loc, IntegerTypeRef.intRef(), i);
+        }
+    }
+    // #@@}
+
+    // #@@range/integerValue{
+    private long integerValue(String image) {
+        String s = image.replaceFirst("[UL]+", "");
+        if (s.startsWith("0x") || s.startsWith("0X")) {
+            return Long.parseLong(s.substring(2), 16);
+        }
+        else if (s.startsWith("0") && !s.equals("0")) {
+            return Long.parseLong(s.substring(1), 8);
+        }
+        else {
+            return Long.parseLong(s, 10);
+        }
+    }
+    // #@@}
+
+    // #@@range/characterCode{
+    private long characterCode(String image) throws ParseException {
+        String s = stringValue(image);
+        if (s.length() != 1) {
+            throw new Error("must not happen: character length > 1");
+        }
+        return (long)s.charAt(0);
+    }
+    // #@@}
+
+    // #@@range/stringValue{
+    private String stringValue(String _image) throws ParseException {
+        int pos = 0;
+        int idx;
+        StringBuffer buf = new StringBuffer();
+        String image = _image.substring(1, _image.length() - 1);    //去掉两边的引号
+
+        while ((idx = image.indexOf("\\", pos)) >= 0) {
+            buf.append(image.substring(pos, idx));
+            if (image.length() >= idx + 4
+                    && Character.isDigit(image.charAt(idx+1))
+                    && Character.isDigit(image.charAt(idx+2))
+                    && Character.isDigit(image.charAt(idx+3))) {
+                buf.append(unescapeOctal(image.substring(idx+1, idx+4)));
+                pos = idx + 4;
+            }
+            else {
+                buf.append(unescapeSeq(image.charAt(idx+1)));
+                pos = idx + 2;
+            }
+        }
+        if (pos < image.length()) {
+            buf.append(image.substring(pos, image.length()));
+        }
+        return buf.toString();
+    }
+
+    static final int charMax = 255;
+    private char unescapeOctal(String digits) {
+        int i = Integer.parseInt(digits, 8);
+        if (i > charMax) {
+
+        }
+        return (char)i;
+    }
+    // #@@}
+
+    private static final char bell = 7;
+    private static final char backspace = 8;
+    private static final char escape = 27;
+    private static final char vt = 11;
+
+    private char unescapeSeq(char c) throws ParseException {
+        switch (c) {
+            case '0': return '\0';
+            case '"': return '"';
+            case '\'': return '\'';
+            case 'a': return bell;
+            case 'b': return backspace;
+            case 'e': return escape;
+            case 'f': return '\f';
+            case 'n': return '\n';
+            case 'r': return '\r';
+            case 't': return '\t';
+            case 'v': return vt;
+            default:
+                throw new ParseException("unknown escape sequence: \"\\" + c);
+        }
+    }
+
+    private IntegerTypeRef typeOf_sizeof() {
+        return IntegerTypeRef.ulongRef();
+    }
+
+//用户定义的类型
+    void addKnownTypedefs(List<TypedefNode> typedefs) {
+        for(TypedefNode typedef : typedefs) {
+            addType(typedef.name());
+        }
+    }
+
+    void addType(String name) {
+        knownTypedefs.add(name);
+    }
+
+    boolean isType(String name) {
+        return knownTypedefs.contains(name);
+    }
+    static public void main(String[] sourceFiles) {
+        for (String sourceFile : sourceFiles) {
+            try {
+                File file = new File("sourceCodeTest/" + sourceFile);
+                LibraryLoader libraryLoader = new LibraryLoader();
+                ErrorHandler errorHandler = new ErrorHandler(sourceFile);
+                parseFile(file, libraryLoader, errorHandler, true);
+            } catch (Exception ex) {
+                System.err.println(ex.getMessage());
+            }
+        }
+    }
+
+}
+PARSER_END(Parser)
+
+SPECIAL_TOKEN: { <[" ", "\t", "\r", "\n", "\f"]> }  //空白符
+SPECIAL_TOKEN: { <LINE_COMMENT: "//" (~["\n", "\r"])* ("\n" | "\r" | "\n\r")?> }    //扫描单行注释
+
+//扫描多行注释
+MORE: { <"/*"> : IN_BLOCK_COMMENT }
+<IN_BLOCK_COMMENT> MORE: { < ~[] > }
+<IN_BLOCK_COMMENT> SPECIAL_TOKEN: { <BLOCK_COMMENT: "*/"> : DEFAULT }
+
+//扫描字符串常量
+MORE: { <"\""> : IN_STRING }
+<IN_STRING> MORE:  {
+    <(~["\"", "\\", "\n", "\r"])+>  //匹配除这些字符以外的任意一个字符
+    | <"\\" (["0"-"7"]){3}>         //匹配\007这样的字符串，当成一个八进制数来处理
+    | <"\\" ~[]>
+    //匹配\n,\r,\t等等这样的转义字符,这里有个问题是\9这样的字符也会匹配，但是似乎没什么意义啊
+}
+<IN_STRING> TOKEN: { <STRING: "\""> : DEFAULT }
+
+//扫描字符串字面量
+MORE: { <"'"> : IN_CHARACTER }
+<IN_CHARACTER> MORE: {
+    < ~["'", "\\", "\n", "\r"] > : CHARACTER_TERM
+    | <"\\" (["0"-"7"]){3}> : CHARACTER_TERM
+    | <"\\" ~[]> : CHARACTER_TERM
+}
+<CHARACTER_TERM> TOKEN: { <CHARACTER: "'"> : DEFAULT }
+
+
+TOKEN: {
+        <VOID   : "void">
+        |<CHAR   : "char">
+        |<SHORT  : "short">
+        |<INT    : "int">
+        |<LONG   : "long">
+        |<STRUCT : "struct">
+        |<UNION  : "union">
+        |<ENUM   : "enum">
+        |<STATIC : "static">
+        |<EXTERN : "extern">
+        |<CONST  : "const">
+        |<SIGNED : "signed">
+        |<UNSIGNED : "unsigned">
+        |<IF     : "if">
+        |<ELSE   : "else">
+        |<SWITCH : "switch">
+        |<CASE   : "case">
+        |<DEFAULT_: "default">      //之所以在 DEFAULT 后面加上下划线是因为<DEFAULT>在 javacc 中有特殊用途
+        |<WHILE  : "while">
+        |<DO     : "do">
+        |<FOR    : "for">
+        |<RETURN : "return">
+        |<BREAK  : "break">
+        |<CONTINUE   : "continue">
+        |<GOTO   : "goto">
+        |<TYPEDEF    : "typedef">
+        |<IMPORT : "import">
+        |<SIZEOF : "sizeof">
+        |<INTEGER: (["0"-"9"])+>
+       }
+
+TOKEN: {
+        <IDENTIFIER: ["a"-"z", "A"-"Z", "_"] (["a"-"z", "A"-"Z", "0"-"9", "_"])*>
+}
+
+AST compilation_unit():
+{
+    Token t;
+    Declarations impdecls, decls;
+}
+{
+    {
+        t = getToken(1);
+    }
+    impdecls=import_stmts() decls=top_defs() <EOF>
+    {
+        decls.add(impdecls);
+        return new AST(location(t), decls);
+    }
+}
+
+Declarations declaration_file() :
+{
+    Declarations impdecls, decls = new Declarations();
+    UndefinedFunction undefinedFunc;
+    UndefinedVariable undefinedVar;
+    UnionNode unionNode;
+    StructNode structNode;
+    Constant constant;
+    TypedefNode typedefNode;
+}
+{
+    impdecls=import_stmts() { decls.add(impdecls); }
+    (
+        LOOKAHEAD(<EXTERN> typeref() name() "(")
+        undefinedFunc=funcdecl()    { decls.addFuncdecl(undefinedFunc); }
+        | undefinedVar=vardecl()    { decls.addVardecl(undefinedVar); }
+        | unionNode=defunion()      { decls.addDefunion(unionNode); }
+        | structNode=defstruct()    { decls.addDefstruct(structNode); }
+        | constant=defconst()       { decls.addConstant(constant); }
+        | typedefNode=typedef()     { decls.addTypedef(typedefNode); }
+    )*
+    {
+        return decls;
+    }
+}
+
+UndefinedVariable vardecl() :
+{
+    TypeNode type;
+    String name;
+}
+{
+    <EXTERN> type=type() name=name()
+    {
+        return new UndefinedVariable(type, name);
+    }
+}
+UndefinedFunction funcdecl() :
+{
+    TypeRef ret;
+    String name;
+    Params params;
+}
+{
+//在函数声明的时候不能加 static 关键字
+    <EXTERN> ret=typeref() name=name() "(" params=params() ")"
+    {
+        FunctionTypeRef funcTypeRef = new FunctionTypeRef(ret, params.parametersTypeRef());
+        return new UndefinedFunction(false, new TypeNode(funcTypeRef), name, params);
+    }
+}
+
+
+Declarations import_stmts() :
+{
+    String libid;
+    Declarations impdecls = new Declarations();
+}
+{
+    (libid=import_stmt()
+    {
+        try {
+            Declarations decls = loader.loadLibrary(libid, errorHandler);
+            if (decls != null) {
+                impdecls.add(decls);
+                addKnownTypedefs(decls.typedefs());
+            }
+        }
+        catch (CompileException ex) {
+            throw new ParseException(ex.getMessage());
+        }
+    }
+
+    )*
+    {
+        return impdecls;
+    }
+}
+
+String import_stmt() :
+{
+    StringBuffer libname = new StringBuffer();
+    String partname;
+}
+{
+    "import" partname=name() { libname.append(partname); }
+    ("." partname=name()
+        {
+            libname.append(partname);
+        }
+    )* ";"
+    {
+        return libname.toString();
+    }
+}
+
+String name() : 
+{
+	Token tok;
+}
+{
+    tok=<IDENTIFIER> { return tok.image; }
+}
+
+Declarations top_defs():
+{
+    Declarations decls = new Declarations();
+    DefinedFunction defun;
+    List<DefinedVariable> defvars;
+    Constant defconst;
+    StructNode defstruct;
+    UnionNode defunion;
+    TypedefNode typedef;
+}
+{
+    ( LOOKAHEAD(storage() typeref() <IDENTIFIER> "(")
+            defun=defun() { decls.addDefun(defun); }
+    | LOOKAHEAD(3)
+      defvars=defvars(){ decls.addDefvars(defvars); }
+    | defconst=defconst(){ decls.addConstant(defconst); }
+    | defstruct=defstruct(){ decls.addDefstruct(defstruct); }
+    | defunion=defunion(){ decls.addDefunion(defunion); }
+    | typedef=typedef(){ decls.addTypedef(typedef); }
+    )*
+    {
+        return decls;
+    }
+
+}
+
+// 定义变量
+List<DefinedVariable> defvars() :
+{
+    List<DefinedVariable> defs = new ArrayList<DefinedVariable>();
+    boolean priv;
+    TypeNode type;
+    String name;
+    ExprNode init = null;
+}
+{
+    priv=storage() type=type() name=name()  ["=" init=expr()]
+    {
+        defs.add(new DefinedVariable(priv, type, name, init));
+        init = null;
+    }
+    ("," name=name() ["=" init=expr()]
+    {
+        defs.add(new DefinedVariable(priv, type, name, init));
+    }
+    )* ";"
+    {
+        return defs;
+    }
+}
+
+boolean storage() :
+{
+    boolean priv = false;
+}
+{
+    [<STATIC> { priv = true; }]
+    {
+        return priv;
+    }
+}
+
+
+/* 定义函数部分 */
+DefinedFunction defun() :
+{
+    boolean priv;
+    TypeRef ret;
+    String n;
+    Params ps;
+    BlockNode body;
+}
+{
+    priv=storage() ret=typeref() n=name() "(" ps=params() ")" body=block()
+    {
+        TypeRef t = new FunctionTypeRef(ret, ps.parametersTypeRef());
+        return new DefinedFunction(priv, new TypeNode(t), n, ps, body);
+    }
+}
+
+Constant defconst():
+{
+    TypeNode type;
+    String name;
+    ExprNode value;
+}
+{
+    <CONST> type=type() name=name() "=" value=expr() ";"
+    {
+        return new Constant(type, name, value);
+    }
+}
+
+Params params() :
+{
+    Token t;
+    List<CBCParameter> cbcParams = new ArrayList<CBCParameter>();
+    Params params;
+}
+{
+    LOOKAHEAD(<VOID> ")") t=<VOID>    //选项1
+    {
+        params = new Params(location(t), new ArrayList<CBCParameter>());
+    }
+    | params=fixedparams() ["," "..." { params.acceptVarargs(); }]     //选项2
+    {
+        return params;
+    }
+}
+
+Params fixedparams() :
+{
+    TypeNode typenode;
+    String name;
+    List<CBCParameter> cbcParams = new ArrayList<CBCParameter>();
+    Location loc;
+}
+{
+    typenode=type() name=name()
+    {
+        loc = typenode.location();
+        cbcParams.add(new CBCParameter(typenode, name));
+    }
+    (LOOKAHEAD(2) "," typenode=type() name=name()
+        {
+            cbcParams.add(new CBCParameter(typenode, name));
+        }
+    )*
+    {
+        return new Params(loc, cbcParams);
+    }
+}
+
+StructNode defstruct() : 
+{
+	Token t;
+	String n;
+	List<Slot> membs;
+	String str;
+}
+{
+    t=<STRUCT> n=name() membs=member_list() ";"
+    {
+	return new StructNode(location(t), new StructTypeRef(n), n, membs);
+    }	
+}
+
+UnionNode defunion() :
+{
+    Token t;
+    String name;
+    List<Slot> slots;
+}
+{
+    t=<UNION> name=name() slots=member_list() ";"
+    {
+        return new UnionNode(location(t), new UnionTypeRef(name), name, slots);
+    }
+}
+
+List<Slot> member_list() :
+{
+    List<Slot> slots = new ArrayList<Slot>();
+    Slot slot;
+}
+{
+    "{" (slot=slot() ";"
+        {
+            slots.add(slot);
+        }
+    )* "}"
+    {
+        return slots;
+    }
+}
+
+Slot slot() :
+{
+    TypeNode typenode;
+    String name;
+}
+{
+    typenode=type() name=name()
+    {
+        return new Slot(typenode, name);
+    }
+}
+
+TypedefNode typedef() :
+{
+    String name;
+    TypeRef typeref;
+    Token t, nameToken;
+}
+{
+    t=<TYPEDEF> typeref=typeref() nameToken=<IDENTIFIER> ";"
+    {
+        name = nameToken.image;
+        return new TypedefNode(location(t), typeref, name);
+    }
+}
+
+TypeNode type() :
+{
+    TypeRef typeref;
+}
+{
+    typeref=typeref()
+    {
+        return new TypeNode(typeref);
+    }
+}
+
+TypeRef typeref() :
+{
+    Token t;
+    TypeRef baseType;
+    TypeRef typeRef;
+    ParamTypeRefs param_typerefs;
+}
+{
+    baseType=typeref_base()
+    ( LOOKAHEAD(2) "[" "]"  {typeRef = new ArrayTypeRef(baseType); }//不定长数组
+    | "[" t=<INTEGER> "]" { typeRef = new ArrayTypeRef(baseType, integerValue(t.image)); }
+    | "*" { typeRef = new PointerTypeRef(baseType); }
+    | "(" param_typerefs=param_typerefs() ")"  { typeRef = new FunctionTypeRef(baseType, param_typerefs); }
+    )
+    {
+        return typeRef;
+    }
+}
+
+TypeRef typeref_base() :
+{
+    Token t;
+    Token t2;
+    TypeRef baseType;
+}
+{
+    t=<VOID> { baseType = new VoidTypeRef(location(t)); }
+    | t=<CHAR> { baseType = IntegerTypeRef.charRef(location(t)); }
+    | t=<SHORT> { baseType = IntegerTypeRef.shortRef(location(t)); }
+    | t=<INT>{ baseType = IntegerTypeRef.intRef(location(t)); }
+    | t=<LONG>{ baseType = IntegerTypeRef.longRef(location(t)); }
+    | LOOKAHEAD(2) t=<UNSIGNED> <CHAR>{ baseType = IntegerTypeRef.ucharRef(location(t)); }
+    | LOOKAHEAD(2) t=<UNSIGNED> <SHORT>{ baseType = IntegerTypeRef.ushortRef(location(t)); }
+    | LOOKAHEAD(2) t=<UNSIGNED> <INT>{ baseType = IntegerTypeRef.uintRef(location(t)); }
+    | t=<UNSIGNED> <LONG>{ baseType = IntegerTypeRef.ulongRef(location(t)); }
+    | t2=<STRUCT> t=<IDENTIFIER>{ baseType = new StructTypeRef(location(t2), t.image); }
+    | t2=<UNION> t=<IDENTIFIER>{ baseType = new UnionTypeRef(location(t2), t.image); }
+    | LOOKAHEAD({isType(getToken(1).image)}) t=<IDENTIFIER>{ baseType = new UserTypeRef(location(t), t.image); }
+    {
+        return baseType;
+    }
+    
+}
+
+ParamTypeRefs param_typerefs() :
+{
+    Token t;
+    ParamTypeRefs params;
+}
+{
+    LOOKAHEAD(<VOID> ")")
+    <VOID>
+    { return new ParamTypeRefs(new ArrayList<TypeRef>()); }
+    | params=fixedparam_typerefs() ["," "..." { params.acceptVarargs(); }]
+    {
+        return params;
+    }
+}
+
+ParamTypeRefs fixedparam_typerefs() :
+{
+
+    List<TypeRef> typerefs = new ArrayList<TypeRef>();
+    TypeRef tr;
+    Location loc;
+}
+{
+    tr=typeref() { loc = tr.location(); typerefs.add(tr); }
+    (LOOKAHEAD(2) "," tr=typeref()
+        { typerefs.add(tr); }
+    )*
+    {
+        return new ParamTypeRefs(loc, typerefs, false);
+    }
+}
+
+
+List<DefinedVariable> defvar_list():
+{
+    List<DefinedVariable> result = new ArrayList<DefinedVariable>();
+    List<DefinedVariable> vars;
+}
+{
+    ( vars=defvars() { result.addAll(vars); } )*
+    {
+        return result;
+    }
+}
+
+List<StmtNode> stmts() :
+{
+    List<StmtNode> ss = new ArrayList<StmtNode>();
+    StmtNode s;
+}
+{
+    (s=stmt() { if (s != null) ss.add(s); })*
+    {
+        return ss;
+    }
+}
+
+StmtNode stmt() :
+{
+    StmtNode stmt = null;
+    ExprNode expr;
+}
+{
+    (
+      ";"
+    | LOOKAHEAD(2) stmt=labeled_stmt()
+    | expr=expr() ";" { stmt = new ExprStmtNode(expr.location(), expr); }
+    | stmt=block()
+    | stmt=if_stmt()
+    | stmt=while_stmt()
+    | stmt=dowhile_stmt()
+    | stmt=for_stmt()
+    | stmt=switch_stmt()
+    | stmt=break_stmt()
+    | stmt=continue_stmt()
+    | stmt=goto_stmt()
+    | stmt=return_stmt()
+    )
+    {
+        return stmt;
+    }
+}
+
+LabelNode labeled_stmt() :
+{
+    String label;
+    StmtNode stmt;
+}
+{
+    label=label() ":" stmt=stmt()
+    {
+        return new LabelNode(label, stmt);
+    }
+}
+
+String label() :
+{
+    Token t;
+}
+{
+    t=<IDENTIFIER> { return t.image; }
+}
+
+BlockNode block() :
+{
+    Token t;
+    List<DefinedVariable> vars;
+    List<StmtNode> stmts;
+}
+{
+    t="{" vars=defvar_list() stmts=stmts() "}"
+    {
+        return new BlockNode(location(t), vars, stmts);
+    }
+}
+
+DoWhileNode dowhile_stmt() :
+{
+    Token t;
+    BlockNode block;
+    ExprNode expr;
+}
+{
+    t=<DO> block=block() <WHILE> "(" expr=expr() ")"
+    {
+        return new DoWhileNode(location(t), block, expr);
+    }
+}
+
+SwitchNode switch_stmt() :
+{
+    ExprNode switchExpr;
+    List<CaseNode> caseNodeList;
+    Token t;
+}
+{
+    t=<SWITCH> "(" switchExpr=expr() ")" "{" caseNodeList=switch_body() "}"
+    {
+        return new SwitchNode(location(t), switchExpr, caseNodeList);
+    }
+}
+
+List<CaseNode> switch_body() :
+{
+    CaseNode caseNode;
+    List<CaseNode> caseNodeList = new ArrayList<CaseNode>();
+}
+{
+    (caseNode=case_clause()
+        {
+            caseNodeList.add(caseNode);
+        }
+    )*
+    [caseNode=default_clause()
+        {
+            caseNodeList.add(caseNode);
+        }
+    ]
+    {
+        return caseNodeList;
+    }
+}
+
+CaseNode case_clause() :
+{
+    ExprNode expr;
+    List<ExprNode> caseExprs = new ArrayList<ExprNode>();
+    LinkedList<StmtNode> stmts = new LinkedList<StmtNode>();
+    StmtNode stmt;
+}
+{
+    (expr=case_item()
+        {
+            caseExprs.add(expr);
+        }
+    )+
+    (stmt=stmt()
+        {
+            if (stmt != null) stmts.add(stmt);
+        }
+    )+
+    {
+        if (!(stmts.getLast() instanceof BreakNode)) {
+            throw new ParseException("missing break statement at the last of case clause");
+        }
+        return new CaseNode(caseExprs.get(0).location(), caseExprs, new BlockNode(stmts.get(0).location() ,null ,stmts));
+    }
+}
+
+ExprNode case_item() :
+{
+    ExprNode expr;
+}
+{
+    <CASE> expr=expr() ":" { return expr; }
+}
+
+CaseNode default_clause() :
+{
+    Token t;
+    List<StmtNode> stmts;
+}
+{
+    t=<DEFAULT_> ":" stmts=stmts()
+    {
+        return new CaseNode(location(t), null, new BlockNode(stmts.get(0).location(), null, stmts));
+    }
+}
+
+//switch 语句相关的结束
+ContinueNode continue_stmt() :
+{
+    Token t;
+}
+{
+    t=<CONTINUE> ";"
+    {
+        return new ContinueNode(location(t));
+    }
+}
+
+GotoNode goto_stmt() :
+{
+    Token t;
+    String labelName;
+}
+{
+    t=<GOTO> labelName=label() ";"
+    {
+        return new GotoNode(location(t), labelName);
+    }
+}
+
+
+//if 语句，lookahead 是为了解决空悬 else 的问题，else 属于最近的 if 语句
+IfNode if_stmt() :
+{
+    Token t;
+    ExprNode cond;
+    StmtNode thenBody, elseBody = null;
+}
+{
+    t=<IF> "(" cond=expr() ")" thenBody=stmt() [ LOOKAHEAD(1) <ELSE> elseBody=stmt() ]
+    {
+        return new IfNode(location(t), cond, thenBody, elseBody);
+    }
+}
+
+WhileNode while_stmt() :
+{
+    Token t;
+    ExprNode cond;
+    StmtNode body;
+}
+{
+    t=<WHILE> "(" cond=expr() ")" body=stmt()
+    {
+        return new WhileNode(location(t), cond, body);
+    }
+}
+
+ForNode for_stmt() :
+{
+    Token t;
+    ExprNode init = null, cond = null, action = null;
+    StmtNode bodyStmt;
+}
+{
+    t=<FOR> "(" [init=expr()] ";" [cond=expr()] ";" [action=expr()] ")" bodyStmt=stmt()
+    {
+        return new ForNode(location(t), init, cond, action, bodyStmt);
+    }
+}
+
+BreakNode break_stmt() :
+{
+    Token t;
+}
+{
+    t=<BREAK> ";"
+    {
+        return new BreakNode(location(t));
+    }
+}
+
+ReturnNode return_stmt() :
+{
+    Token t;
+    ExprNode retValueExpr = null;
+}
+{
+    LOOKAHEAD(2) t=<RETURN> ";"
+    | t=<RETURN> [retValueExpr=expr()] ";"
+    {
+        return new ReturnNode(location(t), retValueExpr);
+    }
+}
+
+ExprNode expr() :
+{
+    ExprNode lhs, rhs, expr;
+    String op;
+}
+{
+    LOOKAHEAD(term() "=")
+    lhs=term() "=" rhs=expr()
+    {
+        return new AssignNode(lhs, rhs);
+    }
+    | LOOKAHEAD(term() opassign_op())
+    lhs=term() op=opassign_op() rhs=expr()
+    {
+        return new OpAssignNode(lhs, op, rhs);
+    }
+    | expr=expr10()
+    {
+        return expr;
+    }
+}
+
+String opassign_op():
+{
+    Token tok;
+}
+{
+    ( tok="+=" { return "+"; }
+    | tok="-="{ return "-"; }
+    | tok="*="{ return "*"; }
+    | tok="/="{ return "/"; }
+    | tok="%="{ return "%"; }
+    | tok="&="{ return "&"; }
+    | tok="|="{ return "|"; }
+    | tok="^="{ return "^"; }
+    | tok="<<="{ return "<<"; }
+    | tok=">>="{ return ">>"; }
+    )
+}
+
+ExprNode expr10() :
+{
+    ExprNode c, t, e;
+}
+{
+    c=expr9() ["?" t=expr() ":" e=expr10()
+                { return new CondExprNode(c, t, e); }]
+                {
+                    return c;
+                }
+}
+
+ExprNode expr9() :
+{
+    ExprNode l, r;
+}
+{
+    l=expr8() ("||" r=expr8() { l = new LogicalOrNode(l, r); })*
+    {
+        return l;
+    }
+}
+
+ExprNode expr8() :
+{
+    ExprNode l, r;
+}
+{
+    l=expr7() ("&&" r=expr7() { l = new LogicalAndNode(l, r); } )*
+    {
+        return l;
+    }
+}
+
+ExprNode expr7() :
+{
+    ExprNode l, r;
+}
+{
+    l=expr6() (">" r=expr6() { l = new BinaryOpNode(l, ">", r); }
+            | "<" r=expr6(){ l = new BinaryOpNode(l, ">", r); }
+            | ">=" r=expr6(){ l = new BinaryOpNode(l, ">", r); }
+            | "<=" r=expr6(){ l = new BinaryOpNode(l, ">", r); }
+            | "==" r=expr6(){ l = new BinaryOpNode(l, ">", r); }
+            | "!=" r=expr6(){ l = new BinaryOpNode(l, ">", r); }
+            )*
+            {
+                return l;
+            }
+}
+
+ExprNode expr6() :
+{
+    ExprNode l, r;
+}
+{
+    l=expr5() ("|" r=expr5() { l = new BinaryOpNode(l, "|", r); } )*
+    {
+        return l;
+    }
+}
+
+ExprNode expr5() :
+{
+    ExprNode l, r;
+}
+{
+    l=expr4() ("^" r=expr4() { l = new BinaryOpNode(l, "^", r); } )*
+    {
+        return l;
+    }
+}
+
+ExprNode expr4() :
+{
+    ExprNode l, r;
+}
+{
+    l=expr3() ("&" r=expr3() { l = new BinaryOpNode(l, "&", r); } )*
+    {
+        return l;
+    }
+}
+
+ExprNode expr3() :
+{
+    ExprNode l, r;
+}
+{
+    l=expr2()
+    (">>" r=expr2() { l = new BinaryOpNode(l, ">>", r); }
+    | "<<" r=expr2() { l = new BinaryOpNode(l, "<<", r); }
+    )*
+    {
+        return l;
+    }
+}
+
+ExprNode expr2() :
+{
+    ExprNode l, r;
+}
+{
+    l=expr1() ("+" r=expr1() { l = new BinaryOpNode(l, "+", r); }
+            | "-" r=expr1() { l = new BinaryOpNode(l, "-", r); }
+            )*
+            {
+               return l;
+            }
+}
+
+ExprNode expr1() :
+{
+    ExprNode l, r;
+}
+{
+    l=term() ( "*" r=term() { l = new BinaryOpNode(l, "*", r); }
+                | "/" r=term(){ l = new BinaryOpNode(l, "/", r); }
+                | "%" r=term(){ l = new BinaryOpNode(l, "%", r); }
+                )*
+                {
+                    return l;
+                }
+}
+
+ExprNode term() :
+{
+    TypeNode t;
+    ExprNode n;
+}
+{
+    LOOKAHEAD("(" type()) "(" t=type() ")" n=term() { return new CastNode(t, n); }
+    | n=unary()                                     { return n; }
+}
+
+ExprNode unary() :
+{
+    ExprNode n;
+    TypeNode t;
+}
+{
+    "++" n=unary() { return new PrefixOpNode("++", n); }
+    | "--" n=unary() { return new PrefixOpNode("--", n); }
+    | "+" n=term()    { return new UnaryOpNode("+", n); }
+    | "-" n=term()    { return new UnaryOpNode("-", n); }
+    | "!" n=term()    { return new UnaryOpNode("!", n); }
+    | "~" n=term()    { return new UnaryOpNode("~", n); }
+    | "*" n=term()    { return new DereferenceNode(n); }  //指针引用（间接引用）
+    | "&" n=term()    { return new AddressNode(n); }      //地址运算符
+    | LOOKAHEAD(3) <SIZEOF> "(" t=type() ")"  //sizeof(类型)
+    {
+        return new SizeofTypeNode(t, typeOf_sizeof());
+    }
+    | <SIZEOF> n=unary()
+    {
+        return new SizeofExprNode(n, typeOf_sizeof());
+    }
+    | n=postfix() { return n; }
+}
+
+ExprNode postfix():
+{
+    ExprNode expr, idx;
+    String memb;
+    List<ExprNode> args;
+}
+{
+    expr=primary()
+    ( "++" { expr = new SuffixOpNode("++", expr); }
+    | "--" { expr = new SuffixOpNode("--", expr); }
+    | "[" idx=expr() "]" { expr = new ArefNode(expr, idx); }
+    | "." memb=name() { expr = new MemberNode(expr, memb); }
+    | "->" memb=name() { expr = new PtrMemberNode(expr, memb); }
+    | "(" args=args() ")" { expr = new FuncallNode(expr, args); }
+    )*
+    {
+        return expr;
+    }
+}
+
+List<ExprNode> args() :
+{
+    List<ExprNode> argList = new ArrayList<ExprNode>();
+    ExprNode arg = null;
+}
+{
+    [ arg=expr() { argList.add(arg); }
+    ("," arg=expr()
+        {
+            argList.add(arg);
+        }
+    )* ]
+    {
+        return argList;
+    }
+}
+
+ExprNode primary() :
+{
+    Token t;
+    ExprNode n;
+}
+{
+    t=<INTEGER>
+    {
+        return integerNode(location(t), t.image);
+    }
+    | t=<CHARACTER>
+    {
+        return new IntegerLiteralNode(location(t), IntegerTypeRef.charRef(), characterCode(t.image));
+    }
+    | t=<STRING>
+    {
+        return new StringLiteralNode(location(t),
+            new PointerTypeRef(IntegerTypeRef.charRef()),
+            stringValue(t.image));
+    }
+    | t=<IDENTIFIER>
+    {
+        return new VariableNode(location(t), t.image);
+    }
+    | "(" n=expr() ")"
+    {
+        return n;
+    }
+}
