@@ -17,7 +17,20 @@ public class SwitchNode extends StmtNode {
 
     @Override
     protected void _dump(Dumper d) {
-        d.printMember("expr", expr);
+        d.printMember("condExpr", expr);
+        d.printNodeList("cases", caseNodeList);
     }
 
+    @Override
+    public <S, E> S accept(ASTVisitor<S, E> visitor) {
+        return visitor.visit(this);
+    }
+
+    public ExprNode expr() {
+        return expr;
+    }
+
+    public List<CaseNode> caseNodeList() {
+        return caseNodeList;
+    }
 }

@@ -18,4 +18,17 @@ public class WhileNode extends StmtNode {
         d.printMember("condExpr", condExpr);
         d.printMember("body", body);
     }
+
+    @Override
+    public <S, E> S accept(ASTVisitor<S, E> visitor) {
+        return visitor.visit(this);
+    }
+
+    public ExprNode condExpr() {
+        return condExpr;
+    }
+
+    public StmtNode body() {
+        return body;
+    }
 }

@@ -6,7 +6,7 @@ import com.dddong.net.type.Type;
 /**
  * Created by dddong on 2017/5/15.
  */
-abstract public class Entity implements Dumpable{
+abstract public class Entity implements Dumpable {
     protected String name;
     protected boolean isPrivate;
     protected TypeNode typeNode;

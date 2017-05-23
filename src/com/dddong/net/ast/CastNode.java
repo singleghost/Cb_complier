@@ -15,6 +15,11 @@ public class CastNode extends ExprNode {
     }
 
     @Override
+    public <S, E> E accept(ASTVisitor<S, E> visitor) {
+        return visitor.visit(this);
+    }
+
+    @Override
     public Location location() {
         return castType.location();
     }
@@ -28,5 +33,9 @@ public class CastNode extends ExprNode {
     public CastNode(TypeNode castType, ExprNode expr) {
         this.castType = castType;
         this.expr = expr;
+    }
+
+    public ExprNode expr() {
+        return expr;
     }
 }

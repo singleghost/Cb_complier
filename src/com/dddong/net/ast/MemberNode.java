@@ -22,4 +22,13 @@ public class MemberNode extends LHSNode {
         d.printMember("expr", expr);
         d.printMember("name", name);
     }
+
+    @Override
+    public <S, E> E accept(ASTVisitor<S, E> visitor) {
+        return visitor.visit(this);
+    }
+
+    public ExprNode expr() {
+        return expr;
+    }
 }

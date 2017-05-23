@@ -23,8 +23,8 @@ public class ExprStmtNode extends StmtNode {
         d.printMember("expr", expr);
     }
 
-//    public <S,E> S accept(ASTVisitor<S,E> visitor) {
-//        return visitor.visit(this);
-//    }
+    public <S,E> S accept(ASTVisitor<S,E> visitor) {
+        return visitor.visit(this);
+    }
 
 }

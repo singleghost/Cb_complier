@@ -1,5 +1,8 @@
 package com.dddong.net;
 
+import com.dddong.net.ast.Dumper;
+
+import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -12,5 +15,7 @@ public class ForHelp {
     static List<String> strlist = new ArrayList<>();
 
     public static void main(String[] args) {
+        Dumper dp = new Dumper(new PrintStream(System.out));
+        System.out.flush();
     }
 }

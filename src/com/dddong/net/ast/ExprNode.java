@@ -22,4 +22,5 @@ abstract public class ExprNode extends Node {
     public boolean isAssignable() { return false; }
     public boolean isLoadable() { return false; }
 
+    abstract public <S,E> E accept(ASTVisitor<S,E> visitor);
 }

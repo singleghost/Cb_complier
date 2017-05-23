@@ -1,7 +1,11 @@
-int main()
+int
+main(int argc, char **argv)
 {
-    int a = 6;
-    if (a > 0) {
-        a = a + 1;
+    int i, j = 5;
+    if (i) {
+        return (j * 1 - j);
+    }
+    else {
+        exit(1);
     }
 }

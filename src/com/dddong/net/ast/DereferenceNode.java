@@ -39,4 +39,8 @@ public class DereferenceNode extends LHSNode {
 //        return visitor.visit(this);
 //    }
 
+    @Override
+    public <S, E> E accept(ASTVisitor<S, E> visitor) {
+        return visitor.visit(this);
+    }
 }

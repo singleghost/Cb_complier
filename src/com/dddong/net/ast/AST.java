@@ -1,9 +1,6 @@
 package com.dddong.net.ast;
 
-import com.dddong.net.entity.Constant;
-import com.dddong.net.entity.DefinedFunction;
-import com.dddong.net.entity.DefinedVariable;
-import com.dddong.net.entity.Entity;
+import com.dddong.net.entity.*;
 
 import java.io.PrintStream;
 import java.util.ArrayList;
@@ -15,8 +12,8 @@ import java.util.List;
 public class AST extends Node {
     protected Location source;
     protected Declarations declarations;
-//    protected ToplevelScope scope;
-//    protected ConstantTable constantTable;
+    protected ToplevelScope scope;
+    protected ConstantTable constantTable;
 
     public AST(Location source, Declarations declarations) {
         super();
@@ -113,6 +110,7 @@ public class AST extends Node {
 //    }
 //
     protected void _dump(Dumper d) {
+//        d.printNodeList("constant", constants());
         d.printNodeList("variables", definedVariables());
         d.printNodeList("functions", definedFunctions());
     }
@@ -161,4 +159,11 @@ public class AST extends Node {
         }
     }
 
+    public void setScope(ToplevelScope scope) {
+        this.scope = scope;
+    }
+
+    public void setConstantTable(ConstantTable constantTable) {
+        this.constantTable = constantTable;
+    }
 }

@@ -15,4 +15,9 @@ public class GotoNode extends StmtNode {
         super(loc);
         this.labelName = labelName;
     }
+
+    @Override
+    public <S, E> S accept(ASTVisitor<S, E> visitor) {
+        return visitor.visit(this);
+    }
 }

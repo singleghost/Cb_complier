@@ -100,6 +100,8 @@ C 语言中这样定义表示 x 是 int *类型，y 是 int 类型。而在 Cb �
 
    书中说在 C 语言中不允许编写这样的代码，但是在 gcc 上尝试了发现是可以的！
 
+7. 在 Cb 中 file scope 中定义的const 变量是internal linkage的，就是相当于加上了 static 关键字。而 C 语言中在 file scope 中定义的 const 变量是 external linkage 的。
+
 
 
 
@@ -123,9 +125,34 @@ C 语言中这样定义表示 x 是 int *类型，y 是 int 类型。而在 Cb �
 
 定义包含语句，语句包含表达式，表达式包含项。
 
+### Cb 的基本类型
 
+char, unsigned char, short, unsigned short, int, unsigned int, long, unsigned long, 指针, struct, union, 
 
-### 类树
+### Cb Cheat Sheet
+
+* 在函数内部不能定义 const 变量，const 变量的定义必须是file scope 的。
+
+* Cb不支持`int [] a = {1,2,3}`这样的数组初始化方式
+
+* Cb不支持typedef和类型定义写在一起的语法，例如
+
+  ```C
+  //这样的写法是不行的
+  typedef struct Ball {
+    int width;
+  } Ball;
+
+  //必须分开来写
+  struct Ball {
+    int width;
+  };
+  typedef struct Ball Ball;
+  ```
+
+  ​
+
+### AST类树
 
 #### 一、Node 类树
 
@@ -179,6 +206,65 @@ Node
 			UnionNode
 		TypedefNode
 	TypeNode
+```
+
+
+
+测试覆盖
+
+```
+*Node 
+	*AST
+	*ExprNode
+		*AbstractAssignNode
+			*AssignNode
+			*OpAssignNode
+		*AddressNode
+		*BinaryOpNode
+			*LogicalAndNode
+			*LogicalOrNode
+		*CastNode
+		*CondExprNode				三元运算符 a ? b : c
+		*FuncallNode
+		*LHSNode						能够成为赋值的左值的节点
+			*ArefNode				数组表达式( a[i] )
+			*DereferenceNode
+			*MemberNode				成员表达式 (s.memb)
+			*PtrMemberNode			成员表达式 (ptr->memb)
+			*VariableNode
+		*LiteralNode
+			*IntegerLiteralNode
+			*StringLiteralNode
+		*SizeofExprNode
+		*SizeofTypeNode
+		*UnaryOpNode					一元运算表达式( +x, -x, ...)
+			*UnaryArithmeticOpNode	 ++ 和 --
+				*PrefixOpNode		前置的 ++ 和 --
+				*SuffixOpNode		后置的 ++ 和 --
+	*Slot
+	*StmtNode
+		*BlockNode
+		*BreakNode
+		*CaseNode
+		*ContinueNode
+		*DoWhileNode
+		*ExprStmtNode
+		*ForNode
+		*GotoNode
+		*IfNode
+		*LabelNode
+		*ReturnNode
+		*SwitchNode
+		*WhileNode
+	*TypeDefinition
+		*CompositeTypeDefinition
+			*StructNode
+			*UnionNode
+		*TypedefNode
+	*TypeNode
+	
+	
+对于 import_stmts的测试
 ```
 
 

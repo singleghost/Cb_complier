@@ -18,4 +18,17 @@ public class DoWhileNode extends StmtNode {
         d.printMember("block", block);
         d.printMember("expr", expr);
     }
+
+    @Override
+    public <S, E> S accept(ASTVisitor<S, E> visitor) {
+        return visitor.visit(this);
+    }
+
+    public BlockNode block() {
+        return block;
+    }
+
+    public ExprNode expr() {
+        return expr;
+    }
 }

@@ -7,6 +7,9 @@ import com.dddong.net.utils.TextUtils;
 import java.io.*;
 import java.util.*;
 
+
+import static com.dddong.net.utils.TextColor.*;
+
 /**
  * Created by dddong on 2017/5/11.
  */
@@ -21,7 +24,7 @@ public class Dumper {
 
     public void printClass(Object obj, Location loc) {
         printIndent();
-        stream.println("<<" + obj.getClass().getSimpleName() + ">> (" + loc + ")");
+        stream.println(ANSI_RED + "<<" + obj.getClass().getSimpleName() + ">>" + ANSI_RESET + " (" + loc + ")");
     }
 
     public void printNodeList(String name, List<? extends Dumpable> nodes) {
@@ -65,22 +68,22 @@ public class Dumper {
 
     protected void printPair(String name, String value) {
         printIndent();
-        stream.println(name + ": " + value);
+        stream.println(ANSI_BLUE + name + ANSI_RESET + ": " + value);
     }
 
     public void printMember(String name, TypeNode n) {
         printIndent();
-        stream.println(name + ": " + n.typeRef()
+        stream.println(ANSI_BLUE + name + ANSI_RESET + ": " + n.typeRef()
                 + (n.isResolved() ? " (resolved)" : ""));
     }
 
     public void printMember(String name, Dumpable n) {
         printIndent();
         if (n == null) {
-            stream.println(name + ": null");
+            stream.println(ANSI_BLUE + name + ANSI_RESET + ": null");
         }
         else {
-            stream.println(name + ":");
+            stream.println(ANSI_BLUE + name + ANSI_RESET + ":");
             indent();
             n.dump(this);
             unindent();

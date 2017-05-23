@@ -1,6 +1,15 @@
 package com.dddong.net.complier;
 
+import com.dddong.net.ast.AST;
+import com.dddong.net.ast.Dumper;
+import com.dddong.net.parser.LibraryLoader;
+import com.dddong.net.parser.Parser;
+import com.dddong.net.utils.ErrorHandler;
+
+import java.io.File;
+import java.io.PrintStream;
 import java.util.List;
+
 
 /**
  * Created by dddong on 2017/4/10.
@@ -9,8 +18,24 @@ public class Compiler {
     static final public String ProgramName = "cbc";
     static final public String Version = "1.0.0";
 
-    static public void main(String [] args) {
-        new Compiler(ProgramName).commandMain(args);
+    static public void main(String [] sourceFiles) {
+//        new Compiler(ProgramName).commandMain(args);
+        Dumper dp = new Dumper(new PrintStream(System.out));
+        for (String sourceFile : sourceFiles) {
+            try {
+                File file = new File("sourceCodeTest/" + sourceFile);
+                LibraryLoader libraryLoader = new LibraryLoader();
+                ErrorHandler errorHandler = new ErrorHandler(sourceFile);
+                AST ast = Parser.parseFile(file, libraryLoader, errorHandler, true);
+                ast.dump(dp);
+                LocalResolver localResolver = new LocalResolver(errorHandler);
+                localResolver.resolve(ast);
+            } catch (Exception ex) {
+//                System.err.println(ex.getMessage());
+                System.out.flush();
+                ex.printStackTrace();
+            }
+        }
     }
 
 //    private final ErrorHandler errorHandler;

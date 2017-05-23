@@ -22,4 +22,13 @@ public class PtrMemberNode extends LHSNode {
         this.expr = expr;
         this.name = name;
     }
+
+    @Override
+    public <S, E> E accept(ASTVisitor<S, E> visitor) {
+        return visitor.visit(this);
+    }
+
+    public ExprNode expr() {
+        return expr;
+    }
 }

@@ -21,7 +21,7 @@ public class LabelNode extends StmtNode {
         return labelName;
     }
 
-    StmtNode stmt() {
+    public StmtNode stmt() {
         return stmtNode;
     }
 
@@ -29,5 +29,10 @@ public class LabelNode extends StmtNode {
     protected void _dump(Dumper d) {
         d.printMember("labelName", labelName);
         d.printMember("stmt", stmtNode);
+    }
+
+    @Override
+    public <S, E> S accept(ASTVisitor<S, E> visitor) {
+        return visitor.visit(this);
     }
 }

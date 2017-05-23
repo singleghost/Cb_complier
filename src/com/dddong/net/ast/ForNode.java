@@ -12,7 +12,10 @@ public class ForNode extends StmtNode {
 
     @Override
     protected void _dump(Dumper d) {
-
+        d.printMember("initExpr", initExpr);
+        d.printMember("condExpr", condExpr);
+        d.printMember("actionExpr", actionExpr);
+        d.printMember("body", bodyStmt);
     }
 
     public ForNode(Location loc, ExprNode init, ExprNode cond, ExprNode action, StmtNode bodyStmt) {
@@ -22,5 +25,26 @@ public class ForNode extends StmtNode {
         this.condExpr = cond;
         this.actionExpr = action;
         this.bodyStmt = bodyStmt;
+    }
+
+    @Override
+    public <S, E> S accept(ASTVisitor<S, E> visitor) {
+        return visitor.visit(this);
+    }
+
+    public ExprNode initExpr() {
+        return initExpr;
+    }
+
+    public ExprNode condExpr() {
+        return condExpr;
+    }
+
+    public ExprNode actionExpr() {
+        return actionExpr;
+    }
+
+    public StmtNode bodyStmt() {
+        return bodyStmt;
     }
 }

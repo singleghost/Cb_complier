@@ -21,4 +21,17 @@ public class CaseNode extends StmtNode {
         this.caseValues = caseValues;
         this.body = body;
     }
+
+    @Override
+    public <S, E> S accept(ASTVisitor<S, E> visitor) {
+        return visitor.visit(this);
+    }
+
+    public BlockNode body() {
+        return body;
+    }
+
+    public List<ExprNode> caseValues() {
+        return caseValues;
+    }
 }

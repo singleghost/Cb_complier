@@ -1,5 +1,7 @@
 package com.dddong.net.ast;
 
+import com.dddong.net.complier.LocalResolver;
+
 import java.io.PrintStream;
 
 /**
@@ -26,4 +28,5 @@ abstract public class Node implements Dumpable {
     }
 
     abstract protected void _dump(Dumper d);
+
 }

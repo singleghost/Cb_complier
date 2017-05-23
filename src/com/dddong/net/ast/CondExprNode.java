@@ -14,6 +14,11 @@ public class CondExprNode extends ExprNode {
     }
 
     @Override
+    public <S, E> E accept(ASTVisitor<S, E> visitor) {
+        return visitor.visit(this);
+    }
+
+    @Override
     public Location location() {
         return cond.location();
     }
@@ -29,5 +34,17 @@ public class CondExprNode extends ExprNode {
         this.cond = cond;
         this.trueExpr = trueExpr;
         this.falseExpr = falseExpr;
+    }
+
+    public ExprNode cond() {
+        return cond;
+    }
+
+    public ExprNode trueExpr() {
+        return trueExpr;
+    }
+
+    public ExprNode falseExpr() {
+        return falseExpr;
     }
 }

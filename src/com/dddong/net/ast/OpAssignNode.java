@@ -14,4 +14,15 @@ public class OpAssignNode extends AbstractAssignNode {
     public String operator() {
         return opName;
     }
+
+    @Override
+    protected void _dump(Dumper d) {
+        d.printMember("opName", opName);
+        super._dump(d);
+    }
+
+    @Override
+    public <S, E> E accept(ASTVisitor<S, E> visitor) {
+        return visitor.visit(this);
+    }
 }

@@ -12,7 +12,7 @@ import java.util.List;
 public class DefinedFunction extends Function {
     protected Params params;
     protected BlockNode body;
-//    protected LocalScope scope;
+    protected LocalScope scope;
 //    protected List<Stmt> ir;
 
     public DefinedFunction(boolean priv, TypeNode type,
@@ -42,9 +42,9 @@ public class DefinedFunction extends Function {
 //        this.ir = ir;
 //    }
 //
-//    public void setScope(LocalScope scope) {
-//        this.scope = scope;
-//    }
+    public void setScope(LocalScope scope) {
+        this.scope = scope;
+    }
 //
 //    public LocalScope lvarScope() {
 //        return body().scope();

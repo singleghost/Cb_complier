@@ -21,4 +21,21 @@ public class IfNode extends StmtNode {
         d.printMember("thenBody", thenBody);
         d.printMember("elseBody", elseBody);
     }
+
+    @Override
+    public <S, E> S accept(ASTVisitor<S, E> visitor) {
+        return visitor.visit(this);
+    }
+
+    public ExprNode cond() {
+        return cond;
+    }
+
+    public StmtNode thenBody() {
+        return thenBody;
+    }
+
+    public StmtNode elseBody() {
+        return elseBody;
+    }
 }

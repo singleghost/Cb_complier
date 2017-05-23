@@ -54,6 +54,11 @@ public class ArefNode extends LHSNode {
         d.printMember("index", index);
     }
 
+    @Override
+    public <S, E> E accept(ASTVisitor<S, E> visitor) {
+        return visitor.visit(this);
+    }
+
 //    public <S,E> E accept(ASTVisitor<S,E> visitor) {
 //        return visitor.visit(this);
 //    }

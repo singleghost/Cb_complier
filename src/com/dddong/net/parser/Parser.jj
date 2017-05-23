@@ -1,6 +1,6 @@
 options {
     STATIC = false;
-//    UNICODE_INPUT = true;
+    UNICODE_INPUT = true;
     DEBUG_PARSER = true;
     }
 
@@ -176,10 +176,10 @@ public class Parser {
     }
 
     static final int charMax = 255;
-    private char unescapeOctal(String digits) {
+    private char unescapeOctal(String digits) throws ParseException {
         int i = Integer.parseInt(digits, 8);
         if (i > charMax) {
-
+            throw new ParseException("incorrect octal escape, exceeds the upper bound of char");
         }
         return (char)i;
     }
@@ -203,6 +203,7 @@ public class Parser {
             case 'r': return '\r';
             case 't': return '\t';
             case 'v': return vt;
+            case '\\': return '\\';
             default:
                 throw new ParseException("unknown escape sequence: \"\\" + c);
         }
@@ -226,18 +227,22 @@ public class Parser {
     boolean isType(String name) {
         return knownTypedefs.contains(name);
     }
-    static public void main(String[] sourceFiles) {
-        for (String sourceFile : sourceFiles) {
-            try {
-                File file = new File("sourceCodeTest/" + sourceFile);
-                LibraryLoader libraryLoader = new LibraryLoader();
-                ErrorHandler errorHandler = new ErrorHandler(sourceFile);
-                parseFile(file, libraryLoader, errorHandler, true);
-            } catch (Exception ex) {
-                System.err.println(ex.getMessage());
-            }
-        }
-    }
+//    static public void main(String[] sourceFiles) {
+//        Dumper dp = new Dumper(new PrintStream(System.out));
+//        for (String sourceFile : sourceFiles) {
+//            try {
+//                File file = new File("sourceCodeTest/" + sourceFile);
+//                LibraryLoader libraryLoader = new LibraryLoader();
+//                ErrorHandler errorHandler = new ErrorHandler(sourceFile);
+//                AST ast = parseFile(file, libraryLoader, errorHandler, true);
+//                ast.dump(dp);
+//            } catch (Exception ex) {
+////                System.err.println(ex.getMessage());
+////                System.out.flush();
+//                ex.printStackTrace();
+//            }
+//        }
+//    }
 
 }
 PARSER_END(Parser)
@@ -278,7 +283,7 @@ TOKEN: {
         |<LONG   : "long">
         |<STRUCT : "struct">
         |<UNION  : "union">
-        |<ENUM   : "enum">
+//        |<ENUM   : "enum">
         |<STATIC : "static">
         |<EXTERN : "extern">
         |<CONST  : "const">
@@ -426,7 +431,7 @@ String name() :
     tok=<IDENTIFIER> { return tok.image; }
 }
 
-Declarations top_defs():
+Declarations top_defs() :
 {
     Declarations decls = new Declarations();
     DefinedFunction defun;
@@ -506,7 +511,7 @@ DefinedFunction defun() :
     }
 }
 
-Constant defconst():
+Constant defconst() :
 {
     TypeNode type;
     String name;
@@ -529,6 +534,7 @@ Params params() :
     LOOKAHEAD(<VOID> ")") t=<VOID>    //选项1
     {
         params = new Params(location(t), new ArrayList<CBCParameter>());
+        return params;
     }
     | params=fixedparams() ["," "..." { params.acceptVarargs(); }]     //选项2
     {
@@ -643,18 +649,17 @@ TypeRef typeref() :
 {
     Token t;
     TypeRef baseType;
-    TypeRef typeRef;
     ParamTypeRefs param_typerefs;
 }
 {
     baseType=typeref_base()
-    ( LOOKAHEAD(2) "[" "]"  {typeRef = new ArrayTypeRef(baseType); }//不定长数组
-    | "[" t=<INTEGER> "]" { typeRef = new ArrayTypeRef(baseType, integerValue(t.image)); }
-    | "*" { typeRef = new PointerTypeRef(baseType); }
-    | "(" param_typerefs=param_typerefs() ")"  { typeRef = new FunctionTypeRef(baseType, param_typerefs); }
-    )
+    ( LOOKAHEAD(2) "[" "]"  {baseType = new ArrayTypeRef(baseType); }//不定长数组
+    | "[" t=<INTEGER> "]" { baseType = new ArrayTypeRef(baseType, integerValue(t.image)); }
+    | "*" { baseType = new PointerTypeRef(baseType); }
+    | "(" param_typerefs=param_typerefs() ")"  { baseType = new FunctionTypeRef(baseType, param_typerefs); }
+    )*
     {
-        return typeRef;
+        return baseType;
     }
 }
 
@@ -665,7 +670,8 @@ TypeRef typeref_base() :
     TypeRef baseType;
 }
 {
-    t=<VOID> { baseType = new VoidTypeRef(location(t)); }
+    (
+      t=<VOID> { baseType = new VoidTypeRef(location(t)); }
     | t=<CHAR> { baseType = IntegerTypeRef.charRef(location(t)); }
     | t=<SHORT> { baseType = IntegerTypeRef.shortRef(location(t)); }
     | t=<INT>{ baseType = IntegerTypeRef.intRef(location(t)); }
@@ -677,6 +683,7 @@ TypeRef typeref_base() :
     | t2=<STRUCT> t=<IDENTIFIER>{ baseType = new StructTypeRef(location(t2), t.image); }
     | t2=<UNION> t=<IDENTIFIER>{ baseType = new UnionTypeRef(location(t2), t.image); }
     | LOOKAHEAD({isType(getToken(1).image)}) t=<IDENTIFIER>{ baseType = new UserTypeRef(location(t), t.image); }
+    )
     {
         return baseType;
     }
@@ -768,13 +775,15 @@ StmtNode stmt() :
 
 LabelNode labeled_stmt() :
 {
+    Token t;
     String label;
     StmtNode stmt;
 }
 {
+    { t = getToken(1); }
     label=label() ":" stmt=stmt()
     {
-        return new LabelNode(label, stmt);
+        return new LabelNode(location(t), label, stmt);
     }
 }
 
@@ -868,7 +877,8 @@ CaseNode case_clause() :
         if (!(stmts.getLast() instanceof BreakNode)) {
             throw new ParseException("missing break statement at the last of case clause");
         }
-        return new CaseNode(caseExprs.get(0).location(), caseExprs, new BlockNode(stmts.get(0).location() ,null ,stmts));
+        return new CaseNode(caseExprs.get(0).location(), caseExprs, new BlockNode(stmts.get(0).location(),
+                            new ArrayList<DefinedVariable>(),stmts));
     }
 }
 
@@ -888,7 +898,8 @@ CaseNode default_clause() :
 {
     t=<DEFAULT_> ":" stmts=stmts()
     {
-        return new CaseNode(location(t), null, new BlockNode(stmts.get(0).location(), null, stmts));
+        return new CaseNode(location(t), new ArrayList<ExprNode>(), new BlockNode(stmts.get(0).location(),
+                            new ArrayList<DefinedVariable>(), stmts));
     }
 }
 
@@ -1061,11 +1072,11 @@ ExprNode expr7() :
 }
 {
     l=expr6() (">" r=expr6() { l = new BinaryOpNode(l, ">", r); }
-            | "<" r=expr6(){ l = new BinaryOpNode(l, ">", r); }
-            | ">=" r=expr6(){ l = new BinaryOpNode(l, ">", r); }
-            | "<=" r=expr6(){ l = new BinaryOpNode(l, ">", r); }
-            | "==" r=expr6(){ l = new BinaryOpNode(l, ">", r); }
-            | "!=" r=expr6(){ l = new BinaryOpNode(l, ">", r); }
+            | "<" r=expr6(){ l = new BinaryOpNode(l, "<", r); }
+            | ">=" r=expr6(){ l = new BinaryOpNode(l, ">=", r); }
+            | "<=" r=expr6(){ l = new BinaryOpNode(l, "<=", r); }
+            | "==" r=expr6(){ l = new BinaryOpNode(l, "==", r); }
+            | "!=" r=expr6(){ l = new BinaryOpNode(l, "!=", r); }
             )*
             {
                 return l;

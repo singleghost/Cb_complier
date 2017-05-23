@@ -32,4 +32,17 @@ public class FuncallNode extends ExprNode {
         d.printMember("funcNameExpr", nameExpr);
         d.printNodeList("args", args);
     }
+
+    @Override
+    public <S, E> E accept(ASTVisitor<S, E> visitor) {
+        return visitor.visit(this);
+    }
+
+    public ExprNode nameExpr() {
+        return nameExpr;
+    }
+
+    public List<ExprNode> args() {
+        return args;
+    }
 }

@@ -17,6 +17,11 @@ public class StringLiteralNode extends LiteralNode {
 
     @Override
     protected void _dump(Dumper d) {
+        d.printMember("str", str);
+    }
 
+    @Override
+    public <S, E> E accept(ASTVisitor<S, E> visitor) {
+        return visitor.visit(this);
     }
 }
