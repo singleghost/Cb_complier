@@ -19,7 +19,8 @@ public class LibraryLoader {
 
     static public List<String> defaultLoadPath() {
         List<String> pathes = new ArrayList<String>();
-        pathes.add(".");
+        pathes.add("./sourceCodeTest");
+        pathes.add("./import");
         return pathes;
     }
 

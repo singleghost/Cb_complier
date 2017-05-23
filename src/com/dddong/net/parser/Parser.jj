@@ -399,7 +399,6 @@ Declarations import_stmts() :
             throw new ParseException(ex.getMessage());
         }
     }
-
     )*
     {
         return impdecls;
@@ -624,12 +623,12 @@ TypedefNode typedef() :
 {
     String name;
     TypeRef typeref;
-    Token t, nameToken;
+    Token t;
 }
 {
-    t=<TYPEDEF> typeref=typeref() nameToken=<IDENTIFIER> ";"
+    t=<TYPEDEF> typeref=typeref() name=name() ";"
     {
-        name = nameToken.image;
+        addType(name);
         return new TypedefNode(location(t), typeref, name);
     }
 }

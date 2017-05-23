@@ -28,8 +28,8 @@ public class Compiler {
                 ErrorHandler errorHandler = new ErrorHandler(sourceFile);
                 AST ast = Parser.parseFile(file, libraryLoader, errorHandler, true);
                 ast.dump(dp);
-                LocalResolver localResolver = new LocalResolver(errorHandler);
-                localResolver.resolve(ast);
+//                LocalResolver localResolver = new LocalResolver(errorHandler);
+//                localResolver.resolve(ast);
             } catch (Exception ex) {
 //                System.err.println(ex.getMessage());
                 System.out.flush();

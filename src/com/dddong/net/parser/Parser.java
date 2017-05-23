@@ -728,12 +728,12 @@ slots.add(slot);
     trace_call("typedef");
     try {String name;
     TypeRef typeref;
-    Token t, nameToken;
+    Token t;
       t = jj_consume_token(TYPEDEF);
       typeref = typeref();
-      nameToken = jj_consume_token(IDENTIFIER);
+      name = name();
       jj_consume_token(48);
-name = nameToken.image;
+addType(name);
         {if ("" != null) return new TypedefNode(location(t), typeref, name);}
     throw new Error("Missing return statement in function");
     } finally {
