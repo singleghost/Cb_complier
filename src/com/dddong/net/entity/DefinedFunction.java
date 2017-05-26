@@ -12,6 +12,7 @@ import java.util.List;
 public class DefinedFunction extends Function {
     protected Params params;
     protected BlockNode body;
+
     protected LocalScope scope;
 //    protected List<Stmt> ir;
 
@@ -60,14 +61,17 @@ public class DefinedFunction extends Function {
 //    }
 
     protected void _dump(Dumper d) {
-        d.printMember("name", name);
-        d.printMember("isPrivate", isPrivate);
+        super._dump(d);
         d.printMember("params", params);
         d.printMember("body", body);
     }
 
-//    public <T> T accept(EntityVisitor<T> visitor) {
-//        return visitor.visit(this);
-//    }
+    public <T> T accept(EntityVisitor<T> visitor) {
+        return visitor.visit(this);
+    }
 
+    @Override
+    public Params params() {
+        return params;
+    }
 }

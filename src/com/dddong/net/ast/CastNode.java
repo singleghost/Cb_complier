@@ -38,4 +38,8 @@ public class CastNode extends ExprNode {
     public ExprNode expr() {
         return expr;
     }
+
+    public TypeNode castType() {
+        return castType;
+    }
 }

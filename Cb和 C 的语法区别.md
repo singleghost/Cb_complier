@@ -7,7 +7,7 @@
 
 * K&R 语法
 
-  [指的是 C 语言从 C99之后支持在一个 block 中变量声明不需要全部放在 block 的开头了。](http://stackoverflow.com/questions/7859424/why-was-mixing-declarations-and-code-forbidden-up-until-c99)但是在 Cb 中变量的声明仍然需要全部放在 block（还是function？） 的开头，至于为什么要这么做，暂时还不知道。
+  [指的是 C 语言从 C99之后支持在一个 body 中变量声明不需要全部放在 body 的开头了。](http://stackoverflow.com/questions/7859424/why-was-mixing-declarations-and-code-forbidden-up-until-c99)但是在 Cb 中变量的声明仍然需要全部放在 body（还是function？） 的开头，至于为什么要这么做，暂时还不知道。
 
 * 浮点数
 
@@ -101,6 +101,8 @@ C 语言中这样定义表示 x 是 int *类型，y 是 int 类型。而在 Cb �
    书中说在 C 语言中不允许编写这样的代码，但是在 gcc 上尝试了发现是可以的！
 
 7. 在 Cb 中 file scope 中定义的const 变量是internal linkage的，就是相当于加上了 static 关键字。而 C 语言中在 file scope 中定义的 const 变量是 external linkage 的。
+
+8. Cb中源文件内部不能包含函数的声明，只能包含函数的定义。
 
 
 
@@ -268,4 +270,11 @@ Node
 ```
 
 
+
+
+
+## ToDO
+
+* Parser 设置 debug 选项为 true，但是对于 import 头文件的过程却没有输出 debug 信息，甚至出错的时候也没有抛出异常。解决办吧：可以去看一下生成的 Parser.java 的源代码。
+* Constant 类的 ispriv 属性是 true，为什么？
 

@@ -28,6 +28,17 @@ public class UndefinedFunction extends Function {
 
     @Override
     protected void _dump(Dumper d) {
+        super._dump(d);
+        d.printMember("params", params);
+    }
 
+    @Override
+    public <T> T accept(EntityVisitor<T> visitor) {
+        return visitor.visit(this);
+    }
+
+    @Override
+    public Params params() {
+        return params;
     }
 }

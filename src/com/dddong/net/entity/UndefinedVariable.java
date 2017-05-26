@@ -16,13 +16,11 @@ public class UndefinedVariable extends Variable {
     public boolean isInitialized() { return false; }
 
     protected void _dump(Dumper d) {
-        d.printMember("name", name);
-        d.printMember("isPrivate", isPrivate());
-        d.printMember("typeNode", typeNode);
+        super._dump(d);
     }
 
-//    public <T> T accept(EntityVisitor<T> visitor) {
-//        return visitor.visit(this);
-//    }
+    public <T> T accept(EntityVisitor<T> visitor) {
+        return visitor.visit(this);
+    }
 
 }

@@ -38,7 +38,7 @@ public class LocalResolver extends Visitor {
         resolveGvarInitializers(ast.definedVariables());
         resolveConstantValues(ast.constants());
         resolveFunctions(ast.definedFunctions());
-        toplevel.checkReferences(errorHandler);
+        toplevel.checkReferences(errorHandler); //检查是否有未使用的变零
         if (errorHandler.errorOccured()) {
             throw new SemanticException("compile failed");
         }
@@ -105,17 +105,6 @@ public class LocalResolver extends Visitor {
         return (LocalScope)scopeStack.removeLast();
     }
 
-    @Override
-    public Void visit(BlockNode node) {
-
-        pushScope(node.variables());
-        super.visit(node);
-        for (StmtNode stmt: node.stmts()) {
-            resolve(stmt);
-        }
-        node.setScope(popScope());
-        return null;
-    }
 
     @Override
     public Void visit(VariableNode node) {
@@ -130,6 +119,22 @@ public class LocalResolver extends Visitor {
         return null;
     }
 
+    @Override
+    public Void visit(BlockNode node) {
+
+        pushScope(node.variables());
+        super.visit(node);
+        for(DefinedVariable var : node.variables()) {
+            if(var.hasInitializer()) {
+                resolve(var.initializer());
+            }
+        }
+        for (StmtNode stmt: node.stmts()) {
+            resolve(stmt);
+        }
+        node.setScope(popScope());
+        return null;
+    }
     @Override
     public Void visit(ExprStmtNode node) {
         //TODO 疑问:为什么返回类型要定义成 Void,而不是 void
@@ -178,7 +183,7 @@ public class LocalResolver extends Visitor {
     @Override
     public Void visit(DoWhileNode node) {
         super.visit(node);
-        resolve(node.block());
+        resolve(node.body());
         resolve(node.expr());
         return null;
     }

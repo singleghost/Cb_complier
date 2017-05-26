@@ -9,7 +9,7 @@ int main(void)
     char c = 'b';
     long d = 100000;
     void *p = &d;
-    int (int, int) p = add;
+    int (int, int) pp = add;
     //上面是变量定义,下面是语句,两者不能混杂在一起!!
     d = 1;
     a = (int)9;

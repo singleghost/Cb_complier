@@ -51,4 +51,7 @@ public class TypeNode extends Node {
         d.printMember("type", type);
     }
 
+    public long size() {
+        return type().size();
+    }
 }

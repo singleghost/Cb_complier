@@ -2,6 +2,7 @@ package com.dddong.net.ast;
 
 import com.dddong.net.type.Type;
 import com.dddong.net.type.TypeRef;
+import com.dddong.net.type.UserType;
 import com.dddong.net.type.UserTypeRef;
 
 /**
@@ -32,9 +33,9 @@ public class TypedefNode extends TypeDefinition {
     }
 
     // #@@range/definingType{
-//    public Type definingType() {
-//        return new UserType(name(), realTypeNode(), location());
-//    }
+    public Type definingType() {
+        return new UserType(name(), realTypeNode(), location());
+    }
     // #@@}
 
     protected void _dump(Dumper d) {
@@ -42,7 +43,7 @@ public class TypedefNode extends TypeDefinition {
         d.printMember("typeNode", typeNode);
     }
 
-//    public <T> T accept(DeclarationVisitor<T> visitor) {
-//        return visitor.visit(this);
-//    }
+    public <T> T accept(DeclarationVisitor<T> visitor) {
+        return visitor.visit(this);
+    }
 }

@@ -63,14 +63,12 @@ public class DefinedVariable extends Variable {
 //    public Expr ir() { return ir; }
 //
     protected void _dump(Dumper d) {
-        d.printMember("name", name);
-        d.printMember("isPrivate", isPrivate);
-        d.printMember("typeNode", typeNode);
+        super._dump(d);
         d.printMember("initializer", initializer);
     }
-//
-//    public <T> T accept(EntityVisitor<T> visitor) {
-//        return visitor.visit(this);
-//    }
+
+    public <T> T accept(EntityVisitor<T> visitor) {
+        return visitor.visit(this);
+    }
 
 }

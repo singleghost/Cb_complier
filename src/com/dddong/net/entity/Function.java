@@ -1,5 +1,6 @@
 package com.dddong.net.entity;
 
+import com.dddong.net.ast.Dumper;
 import com.dddong.net.ast.TypeNode;
 import com.dddong.net.type.Type;
 
@@ -21,13 +22,20 @@ abstract public class Function extends Entity {
     abstract public boolean isDefined();
     abstract public List<CBCParameter> parameters();
 
-//    public Type returnType() {
-//        return type().getFunctionType().returnType();
-//    }
+    @Override
+    protected void _dump(Dumper d) {
+        super._dump(d);
+    }
 
-//    public boolean isVoid() {
-//        return returnType().isVoid();
-//    }
+    public Type returnType() {
+        return type().getFunctionType().returnType();
+    }
+
+    public boolean isVoid() {
+        return returnType().isVoid();
+    }
+
+    public abstract Params params();
 
 //    public void setCallingSymbol(Symbol sym) {
 //        if (this.callingSymbol != null) {

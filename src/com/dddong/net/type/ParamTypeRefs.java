@@ -3,6 +3,7 @@ package com.dddong.net.type;
 import com.dddong.net.ast.Location;
 import com.dddong.net.entity.ParamSlots;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -21,13 +22,13 @@ public class ParamTypeRefs extends ParamSlots<TypeRef> {
         return paramDescriptors;
     }
 
-//    public ParamTypes internTypes(TypeTable table) {
-//        List<Type> types = new ArrayList<Type>();
-//        for (TypeRef ref : paramDescriptors) {
-//            types.add(table.getParamType(ref));
-//        }
-//        return new ParamTypes(location, types, vararg);
-//    }
+    public ParamTypes internTypes(TypeTable table) {
+        List<Type> types = new ArrayList<Type>();
+        for (TypeRef ref : paramDescriptors) {
+            types.add(table.getParamType(ref));
+        }
+        return new ParamTypes(location, types, vararg);
+    }
 
     public boolean equals(Object other) {
         return (other instanceof ParamTypeRefs)

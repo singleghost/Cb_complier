@@ -49,6 +49,7 @@ public class LibraryLoader {
         Declarations decls = loadedLibraries.get(libid);
         if (decls != null) {
             // Already loaded import file.  Returns cached declarations.
+            loadingLibraries.removeLast();
             return decls;
         }
         decls = Parser.parseDeclFile(searchLibrary(libid), this, handler);

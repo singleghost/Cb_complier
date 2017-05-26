@@ -1,5 +1,6 @@
 package com.dddong.net.ast;
 
+import com.dddong.net.complier.TypeResolver;
 import com.dddong.net.type.Type;
 import com.dddong.net.type.TypeRef;
 
@@ -33,11 +34,13 @@ abstract public class TypeDefinition extends Node {
         return typeNode.typeRef();
     }
 
-//    public Type type() {
-//        return typeNode.type();
-//    }
+    public abstract Type definingType();
 
-//    abstract public Type definingType();
-//    abstract public <T> T accept(DeclarationVisitor<T> visitor);
+
+    public Type type() {
+        return typeNode.type();
+    }
+
+    abstract public <T> T accept(DeclarationVisitor<T> visitor);
 
 }

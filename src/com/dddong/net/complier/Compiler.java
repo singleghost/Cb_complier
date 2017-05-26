@@ -4,6 +4,7 @@ import com.dddong.net.ast.AST;
 import com.dddong.net.ast.Dumper;
 import com.dddong.net.parser.LibraryLoader;
 import com.dddong.net.parser.Parser;
+import com.dddong.net.type.TypeTable;
 import com.dddong.net.utils.ErrorHandler;
 
 import java.io.File;
@@ -28,8 +29,10 @@ public class Compiler {
                 ErrorHandler errorHandler = new ErrorHandler(sourceFile);
                 AST ast = Parser.parseFile(file, libraryLoader, errorHandler, true);
                 ast.dump(dp);
-//                LocalResolver localResolver = new LocalResolver(errorHandler);
-//                localResolver.resolve(ast);
+                LocalResolver localResolver = new LocalResolver(errorHandler);
+                TypeResolver typeResolver = new TypeResolver(TypeTable.ilp32(), errorHandler);
+                localResolver.resolve(ast);
+                typeResolver.resolve(ast);
             } catch (Exception ex) {
 //                System.err.println(ex.getMessage());
                 System.out.flush();

@@ -8,8 +8,6 @@ import com.dddong.net.ast.TypeNode;
  * Created by dddong on 2017/5/15.
  */
 public class Constant extends Entity {
-    private TypeNode type;
-    private String name;
     private ExprNode value;
 
     public Constant(TypeNode type, String name, ExprNode value) {
@@ -25,13 +23,12 @@ public class Constant extends Entity {
     public ExprNode value() { return value; }
 
     protected void _dump(Dumper d) {
-        d.printMember("name", name);
-        d.printMember("typeNode", typeNode);
+        super._dump(d);
         d.printMember("value", value);
     }
 
-//    public <T> T accept(EntityVisitor<T> visitor) {
-//        return visitor.visit(this);
-//    }
+    public <T> T accept(EntityVisitor<T> visitor) {
+        return visitor.visit(this);
+    }
 
 }

@@ -40,6 +40,9 @@ public class Params extends ParamSlots<CBCParameter> implements Dumpable {
 
     public void dump(Dumper d) {
         d.printNodeList("parameters", parameters());
+        if(isVararg()) {
+            d.printMember("vararg", vararg);
+        }
     }
 
 }

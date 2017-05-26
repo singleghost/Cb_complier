@@ -2,6 +2,7 @@ package com.dddong.net.ast;
 
 import com.dddong.net.type.Type;
 import com.dddong.net.type.TypeRef;
+import com.dddong.net.type.UnionType;
 
 import java.util.List;
 
@@ -21,14 +22,12 @@ public class UnionNode extends CompositeTypeDefinition {
         return true;
     }
 
-    // #@@range/definingType{
-//    public Type definingType() {
-//        return new UnionType(name(), members(), location());
-//    }
-    // #@@}
+    public Type definingType() {
+        return new UnionType(name(), members(), location());
+    }
 
-//    public <T> T accept(DeclarationVisitor<T> visitor) {
-//        return visitor.visit(this);
-//    }
+    public <T> T accept(DeclarationVisitor<T> visitor) {
+        return visitor.visit(this);
+    }
 
 }

@@ -110,7 +110,9 @@ public class AST extends Node {
 //    }
 //
     protected void _dump(Dumper d) {
-//        d.printNodeList("constant", constants());
+        d.printNodeList("constant", constants());
+        d.printNodeList("undefinedVariables", declarations.vardecls());
+        d.printNodeList("undefinedFunctions", declarations.funcdecls());
         d.printNodeList("variables", definedVariables());
         d.printNodeList("functions", definedFunctions());
     }

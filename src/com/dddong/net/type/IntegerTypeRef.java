@@ -6,6 +6,8 @@ import com.dddong.net.ast.Location;
  * Created by dddong on 2017/5/14.
  */
 public class IntegerTypeRef extends TypeRef {
+    protected String name;
+
     static public IntegerTypeRef charRef(Location loc) {
         return new IntegerTypeRef("char", loc);
     }
@@ -70,7 +72,6 @@ public class IntegerTypeRef extends TypeRef {
         return new IntegerTypeRef("unsigned long");
     }
 
-    protected String name;
 
     public IntegerTypeRef(String name) {
         this(name, null);

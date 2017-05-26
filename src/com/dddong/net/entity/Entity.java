@@ -1,6 +1,7 @@
 package com.dddong.net.entity;
 
 import com.dddong.net.ast.*;
+import com.dddong.net.complier.TypeResolver;
 import com.dddong.net.type.Type;
 
 /**
@@ -107,6 +108,11 @@ abstract public class Entity implements Dumpable {
         _dump(d);
     }
 
-    abstract protected void _dump(Dumper d);
+    protected void _dump(Dumper d) {
+        d.printMember("name", name);
+        d.printMember("ispriv", isPrivate);
+        d.printMember("type", typeNode);
+    }
 
+    public abstract <T> T accept(EntityVisitor<T> visitor);
 }
