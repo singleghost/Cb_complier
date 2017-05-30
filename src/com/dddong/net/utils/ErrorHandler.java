@@ -30,6 +30,7 @@ public class ErrorHandler {
 
     public void error(String msg) {
         stream.println(programId + ": error: " + msg);
+        stream.flush();
         nError++;
     }
 
@@ -39,6 +40,7 @@ public class ErrorHandler {
 
     public void warn(String msg) {
         stream.println(programId + ": warning: " + msg);
+        stream.flush();
         nWarning++;
     }
 

@@ -1,5 +1,8 @@
 package com.dddong.net.ast;
 
+import com.dddong.net.exception.SemanticError;
+import com.dddong.net.exception.SemanticException;
+import com.dddong.net.type.FunctionType;
 import com.dddong.net.type.Type;
 
 import java.util.List;
@@ -18,8 +21,16 @@ public class FuncallNode extends ExprNode {
 
     @Override
     public Type type() {
-        //TODO return statement below is wrong!只是占位
-        return nameExpr.type();
+        try {
+            return functionType().returnType();
+        } catch (ClassCastException err) {
+            throw new SemanticError(err.getMessage());
+        }
+    }
+
+    FunctionType functionType() {
+        //TODO 这里还有疑问,如果无法转换成PointerType岂不是要报错?
+        return nameExpr.type().getPointerType().baseType().getFunctionType();
     }
 
     @Override

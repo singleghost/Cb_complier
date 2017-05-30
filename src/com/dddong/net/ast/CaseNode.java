@@ -1,5 +1,7 @@
 package com.dddong.net.ast;
 
+import com.dddong.net.asm.Label;
+
 import java.util.List;
 
 /**
@@ -9,6 +11,7 @@ public class CaseNode extends StmtNode {
 
     List<ExprNode> caseValues;
     BlockNode body;
+    Label label;
 
     @Override
     protected void _dump(Dumper d) {
@@ -20,6 +23,7 @@ public class CaseNode extends StmtNode {
         super(loc);
         this.caseValues = caseValues;
         this.body = body;
+        this.label = new Label();
     }
 
     @Override
@@ -33,5 +37,12 @@ public class CaseNode extends StmtNode {
 
     public List<ExprNode> caseValues() {
         return caseValues;
+    }
+    public boolean isDefault() {
+        return caseValues.size() == 0;
+    }
+
+    public Label label() {
+        return label;
     }
 }

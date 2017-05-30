@@ -2,6 +2,7 @@ package com.dddong.net.type;
 
 import com.dddong.net.ast.Location;
 import com.dddong.net.ast.Slot;
+import com.dddong.net.exception.SemanticError;
 
 import java.util.List;
 
@@ -24,8 +25,7 @@ abstract public class CompositeType extends NamedType {
     @Override
     public long size() {
         if(cachedSize == Type.sizeUnknown) {
-            //TODO
-//            computeOffsets();
+            computeOffsets();
         }
         return cachedSize;
     }
@@ -34,7 +34,7 @@ abstract public class CompositeType extends NamedType {
         return members;
     }
 
-//    abstract protected void computeOffsets();
+    abstract protected void computeOffsets();
 
     @Override
     public boolean isSameType(Type other) {
@@ -53,4 +53,14 @@ abstract public class CompositeType extends NamedType {
         //TODO
         return false;
     }
+    public Type memberType(String name) {
+        for(Slot s : members()) {
+            if(s.name().equals(name)) {
+                return s.type();
+            }
+        }
+        throw new SemanticError("member " + name + " not exists");
+    }
+
+    public abstract long memberOffset(String member);
 }

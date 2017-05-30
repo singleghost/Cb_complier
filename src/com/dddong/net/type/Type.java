@@ -1,5 +1,7 @@
 package com.dddong.net.type;
 
+import com.dddong.net.exception.SemanticError;
+
 /**
  * Created by dddong on 2017/5/12.
  */
@@ -35,9 +37,9 @@ public abstract class Type {
     abstract public boolean isCompatible(Type other);
     abstract public boolean isCastableTo(Type target);
 
-//    public Type baseType() {
-//        throw new SemanticError("#baseType called for undereferable type");
-//    }
+    public Type baseType() {
+        throw new SemanticError("#baseType called for undereferable type");
+    }
 
 //    // Cast methods
     public IntegerType getIntegerType() { return (IntegerType)this; }

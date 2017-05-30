@@ -16,7 +16,7 @@ abstract public class LHSNode extends ExprNode {
         this.type = t;
     }
 
-//    abstract protected Type origType();
+    abstract protected Type origType();
 
     public long allocSize() { return origType().allocSize(); }
 
@@ -24,6 +24,7 @@ abstract public class LHSNode extends ExprNode {
     public boolean isAssignable() { return isLoadable(); }
 
     public boolean isLoadable() {
+        //处理左值的时候对数组和函数进行特殊处理
         Type t = origType();
         return !t.isArray() && !t.isFunction();
     }

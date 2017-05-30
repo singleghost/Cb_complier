@@ -4,7 +4,7 @@ package com.dddong.net.type;
  * Created by dddong on 2017/5/25.
  */
 public class PointerType extends Type {
-    protected long size;
+    protected long size;    //pointer size, not baseType size
     protected Type baseType;
 
     public PointerType(long size, Type baseType) {

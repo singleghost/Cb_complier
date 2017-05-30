@@ -40,4 +40,9 @@ public class IntegerType extends Type {
         //TODO
         return false;
     }
+
+    @Override
+    public boolean isSigned() {
+        return isSigned;
+    }
 }

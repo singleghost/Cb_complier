@@ -12,7 +12,7 @@ public class TypedefNode extends TypeDefinition {
     protected TypeNode real;
 
     public TypedefNode(Location loc, TypeRef real, String name) {
-        super(loc, new UserTypeRef(name), name);
+        super(loc, new UserTypeRef(loc, name), name);
         this.real = new TypeNode(real);
     }
 

@@ -1,5 +1,6 @@
 package com.dddong.net.ast;
 
+import com.dddong.net.type.ArrayType;
 import com.dddong.net.type.Type;
 
 /**
@@ -34,13 +35,13 @@ public class ArefNode extends LHSNode {
         return origType().allocSize();
     }
 
-//    public long length() {
-//        return ((ArrayType)expr.origType()).length();
-//    }
+    public long length() {
+        return ((ArrayType)expr.origType()).length();
+    }
 
-//    protected Type origType() {
-//        return expr.origType().baseType();
-//    }
+    protected Type origType() {
+        return expr.origType().baseType();
+    }
 
     public Location location() {
         return expr.location();

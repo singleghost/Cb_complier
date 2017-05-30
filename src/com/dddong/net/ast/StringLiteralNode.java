@@ -24,4 +24,8 @@ public class StringLiteralNode extends LiteralNode {
     public <S, E> E accept(ASTVisitor<S, E> visitor) {
         return visitor.visit(this);
     }
+
+    public String str() {
+        return str;
+    }
 }

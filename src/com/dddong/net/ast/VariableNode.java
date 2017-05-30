@@ -1,6 +1,7 @@
 package com.dddong.net.ast;
 
 import com.dddong.net.entity.Entity;
+import com.dddong.net.type.Type;
 
 /**
  * Created by dddong on 2017/5/19.
@@ -36,5 +37,14 @@ public class VariableNode extends LHSNode {
 
     public void setEntity(Entity entity) {
         this.entity = entity;
+    }
+
+    @Override
+    protected Type origType() {
+        return entity.type();
+    }
+
+    public Entity entity() {
+        return entity;
     }
 }

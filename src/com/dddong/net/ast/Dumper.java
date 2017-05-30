@@ -1,5 +1,6 @@
 package com.dddong.net.ast;
 
+import com.dddong.net.ir.Expr;
 import com.dddong.net.type.Type;
 import com.dddong.net.type.TypeRef;
 import com.dddong.net.utils.TextUtils;
@@ -103,4 +104,8 @@ public class Dumper {
         }
     }
 
+    public void printClass(Object obj) {
+        printIndent();
+        stream.println(ANSI_RED + "<<" + obj.getClass().getSimpleName() + ">>" + ANSI_RESET);
+    }
 }

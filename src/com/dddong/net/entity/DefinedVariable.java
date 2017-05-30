@@ -3,6 +3,7 @@ package com.dddong.net.entity;
 import com.dddong.net.ast.Dumper;
 import com.dddong.net.ast.ExprNode;
 import com.dddong.net.ast.TypeNode;
+import com.dddong.net.ir.Expr;
 import com.dddong.net.type.Type;
 
 /**
@@ -10,7 +11,7 @@ import com.dddong.net.type.Type;
  */
 public class DefinedVariable extends Variable {
     protected ExprNode initializer;
-//    protected Expr ir;
+    protected Expr ir;
     protected long sequence;
 //    protected Symbol symbol;
 
@@ -56,12 +57,12 @@ public class DefinedVariable extends Variable {
         this.initializer = expr;
     }
 
-//    public void setIR(Expr expr) {
-//        this.ir = expr;
-//    }
-//
-//    public Expr ir() { return ir; }
-//
+    public void setIR(Expr expr) {
+        this.ir = expr;
+    }
+
+    public Expr ir() { return ir; }
+
     protected void _dump(Dumper d) {
         super._dump(d);
         d.printMember("initializer", initializer);

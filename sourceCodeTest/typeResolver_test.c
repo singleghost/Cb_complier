@@ -1,3 +1,5 @@
+import setjmp;
+
 struct TESTST {
     int a;
     char c;
@@ -5,7 +7,6 @@ struct TESTST {
 
 union TestUnion {
     long tu;
-    struct TESTST st;
     char ch;
 };
 

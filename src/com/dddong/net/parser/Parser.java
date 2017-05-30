@@ -105,16 +105,16 @@ public class Parser implements ParserConstants {
     private IntegerLiteralNode integerNode(Location loc, String image) {
         long i = integerValue(image);
         if (image.endsWith("UL")) {
-            return new IntegerLiteralNode(loc, IntegerTypeRef.ulongRef(), i);
+            return new IntegerLiteralNode(loc, IntegerTypeRef.ulongRef(loc), i);
         }
         else if (image.endsWith("L")) {
-            return new IntegerLiteralNode(loc, IntegerTypeRef.longRef(), i);
+            return new IntegerLiteralNode(loc, IntegerTypeRef.longRef(loc), i);
         }
         else if (image.endsWith("U")) {
-            return new IntegerLiteralNode(loc, IntegerTypeRef.uintRef(), i);
+            return new IntegerLiteralNode(loc, IntegerTypeRef.uintRef(loc), i);
         }
         else {
-            return new IntegerLiteralNode(loc, IntegerTypeRef.intRef(), i);
+            return new IntegerLiteralNode(loc, IntegerTypeRef.intRef(loc), i);
         }
     }
     // #@@}
@@ -678,7 +678,7 @@ cbcParams.add(new CBCParameter(typenode, name));
       n = name();
       membs = member_list();
       jj_consume_token(46);
-{if ("" != null) return new StructNode(location(t), new StructTypeRef(n), n, membs);}
+{if ("" != null) return new StructNode(location(t), new StructTypeRef(location(t), n), n, membs);}
     throw new Error("Missing return statement in function");
     } finally {
       trace_return("defstruct");
@@ -694,7 +694,7 @@ cbcParams.add(new CBCParameter(typenode, name));
       name = name();
       slots = member_list();
       jj_consume_token(46);
-{if ("" != null) return new UnionNode(location(t), new UnionTypeRef(name), name, slots);}
+{if ("" != null) return new UnionNode(location(t), new UnionTypeRef(location(t), name), name, slots);}
     throw new Error("Missing return statement in function");
     } finally {
       trace_return("defunion");

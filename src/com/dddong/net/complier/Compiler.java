@@ -30,9 +30,14 @@ public class Compiler {
                 AST ast = Parser.parseFile(file, libraryLoader, errorHandler, true);
                 ast.dump(dp);
                 LocalResolver localResolver = new LocalResolver(errorHandler);
-                TypeResolver typeResolver = new TypeResolver(TypeTable.ilp32(), errorHandler);
-                localResolver.resolve(ast);
-                typeResolver.resolve(ast);
+                TypeTable typeTable = TypeTable.ilp32();
+                TypeResolver typeResolver = new TypeResolver(typeTable, errorHandler);
+                StaticTypeChecker typeChecker = new StaticTypeChecker(errorHandler, typeTable);
+
+                localResolver.resolve(ast); //变量引用的消解
+                typeResolver.resolve(ast);  //类型的消解
+
+                typeChecker.semanticCheck();
             } catch (Exception ex) {
 //                System.err.println(ex.getMessage());
                 System.out.flush();

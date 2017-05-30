@@ -17,7 +17,7 @@ public class LabelNode extends StmtNode {
         this.stmtNode = stmtNode;
     }
 
-    String name() {
+    public String name() {
         return labelName;
     }
 

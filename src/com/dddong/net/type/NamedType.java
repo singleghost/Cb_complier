@@ -21,4 +21,9 @@ abstract public class NamedType extends Type {
     public Location location() {
         return location;
     }
+
+    @Override
+    public String toString() {
+        return name;
+    }
 }

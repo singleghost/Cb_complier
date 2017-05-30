@@ -14,8 +14,8 @@ public class UserType extends NamedType {
         this.real = real;
     }
 
-    public TypeNode realType() {
-        return real;
+    public Type realType() {
+        return real.type();
     }
 
     @Override
@@ -41,5 +41,10 @@ public class UserType extends NamedType {
     @Override
     public boolean isCastableTo(Type target) {
         return false;
+    }
+
+    @Override
+    public boolean isVoid() {
+        return realType().isVoid();
     }
 }

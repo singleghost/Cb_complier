@@ -3,6 +3,7 @@ package com.dddong.net.entity;
 import com.dddong.net.ast.BlockNode;
 import com.dddong.net.ast.Dumper;
 import com.dddong.net.ast.TypeNode;
+import com.dddong.net.ir.Stmt;
 
 import java.util.List;
 
@@ -14,7 +15,7 @@ public class DefinedFunction extends Function {
     protected BlockNode body;
 
     protected LocalScope scope;
-//    protected List<Stmt> ir;
+    protected List<Stmt> ir;
 
     public DefinedFunction(boolean priv, TypeNode type,
                            String name, Params params, BlockNode body) {
@@ -35,21 +36,21 @@ public class DefinedFunction extends Function {
         return body;
     }
 
-//    public List<Stmt> ir() {
-//        return ir;
-//    }
-//
-//    public void setIR(List<Stmt> ir) {
-//        this.ir = ir;
-//    }
-//
+    public List<Stmt> ir() {
+        return ir;
+    }
+
+    public void setIR(List<Stmt> ir) {
+        this.ir = ir;
+    }
+
     public void setScope(LocalScope scope) {
         this.scope = scope;
     }
-//
-//    public LocalScope lvarScope() {
-//        return body().scope();
-//    }
+
+    public LocalScope lvarScope() {
+        return body().scope();
+    }
 //
 //    /**
 //     * Returns function local variables.

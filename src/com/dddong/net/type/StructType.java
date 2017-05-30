@@ -2,6 +2,8 @@ package com.dddong.net.type;
 
 import com.dddong.net.ast.Location;
 import com.dddong.net.ast.Slot;
+import com.dddong.net.exception.SemanticError;
+import com.dddong.net.utils.AsmUtils;
 
 import java.util.List;
 
@@ -28,20 +30,34 @@ public class StructType extends CompositeType {
         return false;
     }
 
-//    @Override
-//    protected void computeOffsets() {
-//        long offset = 0;
-//        long maxAlign = 1;
-//        for (Slot s : members()) {
-//            offset = AsmUtils.align(offset, s.allocSize());
-//            s.setOffset(offset);
-//            offset += s.allocSize();
-//            maxAlign = Math.max(maxAlign, s.alignment());
-//        }
-//        cachedSize = AsmUtils.align(offset, maxAlign);
-//        cachedAlign = maxAlign;
-//
-//    }
+    @Override
+    protected void computeOffsets() {
+        long offset = 0;
+        long maxAlign = 1;
+        for (Slot s : members()) {
+            offset = AsmUtils.align(offset, s.allocSize());
+            s.setOffset(offset);
+            offset += s.allocSize();
+            maxAlign = Math.max(maxAlign, s.alignment());
+        }
+        cachedSize = AsmUtils.align(offset, maxAlign);
+        cachedAlign = maxAlign;
+
+    }
 
 
+    @Override
+    public String toString() {
+        return "struct " + name();
+    }
+
+    @Override
+    public long memberOffset(String member) {
+        for(Slot s : members()) {
+            if(s.name().equals(member)) {
+                return s.offset();
+            }
+        }
+        throw new SemanticError("no such member " + member + "in " + this);
+    }
 }

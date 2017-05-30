@@ -1,5 +1,8 @@
 package com.dddong.net.ast;
 
+import com.dddong.net.type.CompositeType;
+import com.dddong.net.type.Type;
+
 /**
  * Created by dddong on 2017/5/18.
  */
@@ -30,5 +33,17 @@ public class PtrMemberNode extends LHSNode {
 
     public ExprNode expr() {
         return expr;
+    }
+
+    @Override
+    protected Type origType() {
+        return baseType().memberType(name);
+    }
+
+    private CompositeType baseType() {
+        return expr().type().getPointerType().baseType().getCompositeType();
+    }
+    public long offset() {
+        return baseType().memberOffset(name);
     }
 }

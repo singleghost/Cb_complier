@@ -2,6 +2,8 @@ package com.dddong.net.type;
 
 import com.dddong.net.ast.Location;
 import com.dddong.net.ast.Slot;
+import com.dddong.net.exception.SemanticError;
+import com.dddong.net.utils.AsmUtils;
 
 import java.util.List;
 
@@ -20,20 +22,24 @@ public class UnionType extends CompositeType {
         return equals(other.getUnionType());
     }
 
-//    protected void computeOffsets() {
-//        long maxSize = 0;
-//        long maxAlign = 1;
-//        for (Slot s : members) {
-//            s.setOffset(0);
-//            maxSize = Math.max(maxSize, s.allocSize());
-//            maxAlign = Math.max(maxAlign, s.alignment());
-//        }
-//        cachedSize = AsmUtils.align(maxSize, maxAlign);
-//        cachedAlign = maxAlign;
-//    }
+    protected void computeOffsets() {
+        long maxSize = 0;
+        long maxAlign = 1;
+        for (Slot s : members) {
+            s.setOffset(0);
+            maxSize = Math.max(maxSize, s.allocSize());
+            maxAlign = Math.max(maxAlign, s.alignment());
+        }
+        cachedSize = AsmUtils.align(maxSize, maxAlign);
+        cachedAlign = maxAlign;
+    }
 
     public String toString() {
         return "union " + name;
     }
 
+    @Override
+    public long memberOffset(String member) {
+        return 0;
+    }
 }

@@ -7,6 +7,7 @@ import com.dddong.net.utils.ErrorHandler;
 
 import java.util.ArrayList;
 import java.util.List;
+import static com.dddong.net.utils.TextColor.*;
 
 /**
  * Created by dddong on 2017/5/25.
@@ -55,6 +56,8 @@ public class TypeResolver extends Visitor implements DeclarationVisitor<Void>, E
             errorHandler.error(node.location(), "type " + node.typeRef().toString() + " cannot be resolved, may be undefined");
             return;
         }
+//        System.out.println(ANSI_PURPLE + node.location() + ANSI_RESET + ": resovle type '"
+//                            + ANSI_BLUE + node.typeRef().toString() + ANSI_RESET + "'");
         node.setType(type);
     }
 
@@ -80,8 +83,8 @@ public class TypeResolver extends Visitor implements DeclarationVisitor<Void>, E
 
     @Override
     public Void visit(TypedefNode typedef) {
-        bindType(typedef.typeNode());
         bindType(typedef.realTypeNode());
+        bindType(typedef.typeNode());
         return null;
     }
 
@@ -271,6 +274,7 @@ public class TypeResolver extends Visitor implements DeclarationVisitor<Void>, E
 
     @Override
     public Void visit(VariableNode node) {
+//        node.type()
         return super.visit(node);
     }
 

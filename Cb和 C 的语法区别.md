@@ -273,6 +273,48 @@ Node
 
 
 
+## 静态类型检查
+
+### 类型定义的检查
+
+对下面三个问题进行检查
+
+1. 包含 void 的数组、结构体、联合体
+2. 成员重复的结构体、联合体
+3. 循环定义的结构体、联合体
+
+
+
+## 中间代码
+
+### 组成中间代码的类
+
+```
+IR
+Stmt
+	Assign
+	CJump
+	Jump
+	Switch
+	LabelStmt
+	ExprStmt
+	Return
+
+Expr
+	Uni
+	Bin
+	Call
+	Addr
+	Mem
+	Var
+	Int
+	Str
+```
+
+
+
+
+
 ## ToDO
 
 * Parser 设置 debug 选项为 true，但是对于 import 头文件的过程却没有输出 debug 信息，甚至出错的时候也没有抛出异常。解决办吧：可以去看一下生成的 Parser.java 的源代码。

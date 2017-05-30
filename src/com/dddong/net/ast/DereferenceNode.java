@@ -12,9 +12,9 @@ public class DereferenceNode extends LHSNode {
         this.expr = expr;
     }
 
-//    protected Type origType() {
-//        return expr.type().baseType();
-//    }
+    protected Type origType() {
+        return expr.type().baseType();
+    }
 
     public ExprNode expr() {
         return expr;
@@ -34,10 +34,6 @@ public class DereferenceNode extends LHSNode {
         }
         d.printMember("expr", expr);
     }
-
-//    public <S,E> E accept(ASTVisitor<S,E> visitor) {
-//        return visitor.visit(this);
-//    }
 
     @Override
     public <S, E> E accept(ASTVisitor<S, E> visitor) {
