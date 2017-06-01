@@ -1,7 +1,6 @@
 package com.dddong.net.ir;
 
 import com.dddong.net.asm.Type;
-import com.dddong.net.ast.Dumper;
 
 /**
  * Created by dddong on 2017/5/27.
@@ -24,4 +23,10 @@ public class Bin extends Expr {
         d.printMember("left expr", left);
         d.printMember("right expr", right);
     }
+
+    @Override
+    public boolean isBin() {
+        return true;
+    }
+
 }

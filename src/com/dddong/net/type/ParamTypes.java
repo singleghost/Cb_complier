@@ -1,8 +1,10 @@
 package com.dddong.net.type;
 
 import com.dddong.net.ast.Location;
+import com.dddong.net.entity.CBCParameter;
 import com.dddong.net.entity.ParamSlots;
 
+import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -17,11 +19,18 @@ public class ParamTypes extends ParamSlots<Type> {
         return paramDescriptors;
     }
 
-    public boolean isSameType(ParamTypes other) {
-        for(int i = 0; i < paramDescriptors.size(); i++) {
-            if(! paramDescriptors.get(i).isSameType(other.paramDescriptors.get(i))) return false;
+    @Override
+    public String toString() {
+        StringBuffer sb = new StringBuffer();
+        for (Iterator<Type> it = types().iterator(); it.hasNext(); ) {
+            Type paramType = it.next();
+            sb.append(paramType.toString());
+            if(!it.hasNext()) {
+                break;
+            }
+            sb.append(", ");
         }
-        if(vararg != other.vararg) return false;
-        return true;
+        if(isVararg()) sb.append("...");
+        return sb.toString();
     }
 }

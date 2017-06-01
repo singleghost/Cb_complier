@@ -36,23 +36,6 @@ abstract public class CompositeType extends NamedType {
 
     abstract protected void computeOffsets();
 
-    @Override
-    public boolean isSameType(Type other) {
-        //TODO
-        return false;
-    }
-
-    @Override
-    public boolean isCompatible(Type other) {
-        //TODO
-        return false;
-    }
-
-    @Override
-    public boolean isCastableTo(Type target) {
-        //TODO
-        return false;
-    }
     public Type memberType(String name) {
         for(Slot s : members()) {
             if(s.name().equals(name)) {
@@ -63,4 +46,11 @@ abstract public class CompositeType extends NamedType {
     }
 
     public abstract long memberOffset(String member);
+
+    @Override
+    public boolean isCompositeType() {
+       return true;
+    }
+
+    public abstract boolean hasMember(String memb);
 }

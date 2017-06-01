@@ -11,4 +11,6 @@ int main(void){
     b = ++a;
     b = --a;
     ;
+    b = a++;
+    b = a--;
 }

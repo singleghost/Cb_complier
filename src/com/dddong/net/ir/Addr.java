@@ -1,7 +1,6 @@
 package com.dddong.net.ir;
 
 import com.dddong.net.asm.Type;
-import com.dddong.net.ast.Dumper;
 import com.dddong.net.entity.Entity;
 
 /**
@@ -18,5 +17,10 @@ public class Addr extends Expr {
     @Override
     protected void _dump(Dumper d) {
         d.printMember("entity", entity.name());
+    }
+
+    @Override
+    public boolean isAddr() {
+        return true;
     }
 }

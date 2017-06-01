@@ -7,6 +7,7 @@ import com.dddong.net.exception.JumpError;
 import com.dddong.net.exception.SemanticError;
 import com.dddong.net.exception.SemanticException;
 import com.dddong.net.ir.*;
+import com.dddong.net.type.FunctionType;
 import com.dddong.net.type.PointerType;
 import com.dddong.net.type.Type;
 import com.dddong.net.type.TypeTable;
@@ -22,6 +23,11 @@ public class IRGenerator implements ASTVisitor<Void, Expr> {
     ErrorHandler errorHandler;
     TypeTable typeTable;
 
+    public IRGenerator(ErrorHandler errorHandler, TypeTable typeTable) {
+        this.errorHandler = errorHandler;
+        this.typeTable = typeTable;
+    }
+
     public IR generate(AST ast) throws SemanticException {
         for(DefinedVariable var : ast.definedVariables()) {
             if(var.hasInitializer()) {
@@ -34,6 +40,7 @@ public class IRGenerator implements ASTVisitor<Void, Expr> {
         if (errorHandler.errorOccured()) {
             throw new SemanticException("IR generation failed");
         }
+        return ast.ir();
     }
 
     List<Stmt> stmts;
@@ -49,7 +56,7 @@ public class IRGenerator implements ASTVisitor<Void, Expr> {
         continueStack = new LinkedList<>();
         jumpMap = new HashMap<String, JumpEntry>();
         transformStmt(f.body());
-        checkJumpLinks(jumpMap);
+//        checkJumpLinks(jumpMap);
         return stmts;
     }
 
@@ -294,23 +301,42 @@ public class IRGenerator implements ASTVisitor<Void, Expr> {
         Label label;
         JumpEntry entry = jumpMap.get(node.labelName());
         if(entry == null) {
-            JumpEntry jumpEnt = new JumpEntry(new Label());
-            jumpMap.put(node.labelName(), jumpEnt);
-            label = jumpEnt.label;
+            entry = new JumpEntry(new Label());
+            jumpMap.put(node.labelName(), entry);
+            label = entry.label;
         } else {
             label = entry.label;
         }
+        entry.numRefered++;
+
         jump(node.location(), label);
         return null;
     }
 
     @Override
     public Void visit(LabelNode node) {
-        if(jumpMap.get(node.name()) != null) {
-            error(node, "duplicate label " + node.name());
-            return null;
+
+        Label label;
+        JumpEntry entry;
+        if(jumpMap.get(node.name()) == null) {
+            entry = new JumpEntry(new Label());
+            entry.isDefined = true;
+            entry.location = node.location();
+            jumpMap.put(node.name(), entry);
         }
-        jumpMap.put(node.name(), new JumpEntry(new Label()));
+        else {
+            //如果jumpEntry已经存在
+            entry = jumpMap.get(node.name());
+            if (entry.isDefined == true) {
+                error(node, "duplicate label " + node.name());
+                return null;
+            }
+            else {
+                entry.isDefined = true;
+                entry.location = node.location();
+            }
+        }
+        label(entry.label);
         transformStmt(node.stmt());
         return null;
     }
@@ -346,8 +372,9 @@ public class IRGenerator implements ASTVisitor<Void, Expr> {
 
     private long tmpVarID = 0;
     private DefinedVariable tmpVar(Type type) {
-
-        return new DefinedVariable(true, new TypeNode(type), "@tmp" + tmpVarID, null);
+        String varName = "@tmp" + tmpVarID;
+        tmpVarID = tmpVarID + 1;
+        return new DefinedVariable(true, new TypeNode(type), varName, null);
     }
 
     private void assign(Location location, Expr lhs, Expr rhs) {
@@ -385,18 +412,34 @@ public class IRGenerator implements ASTVisitor<Void, Expr> {
 
     @Override
     public Expr visit(LogicalOrNode node) {
-        Expr right = transformExpr(node.right());
-        Expr left = transformExpr(node.left());
-        Op op = Op.internBinary(node.operator(), node.type().isSigned());
-        return new Bin(asmType(node.type()), op, left, right);
+        Label thenLabel = new Label();
+        Label endLabel = new Label();
+        DefinedVariable var = tmpVar(node.type());
+
+        assign(node.left().location(), ref(var), transformExpr(node.left()));
+        cjump(node.left().location(), ref(var), endLabel, thenLabel);
+        label(thenLabel);
+        assign(node.right().location(), ref(var), transformExpr(node.right()));
+        label(endLabel);
+
+        //TODO 这里返回的 var 是左表达式或者右表达式的值，返回1或返回0要怎么做
+        return ref(var);
     }
 
     @Override
     public Expr visit(LogicalAndNode node) {
-        Expr right = transformExpr(node.right());
-        Expr left = transformExpr(node.left());
-        Op op = Op.internBinary(node.operator(), node.type().isSigned());
-        return new Bin(asmType(node.type()), op, left, right);
+        Label thenLabel = new Label();
+        Label endLabel = new Label();
+        DefinedVariable var = tmpVar(node.type());
+
+        assign(node.left().location(), ref(var), transformExpr(node.left()));
+        cjump(node.left().location(), ref(var), thenLabel, endLabel);
+        label(thenLabel);
+        assign(node.right().location(), ref(var), transformExpr(node.right()));
+        label(endLabel);
+
+        //TODO 这里返回的 var 是左表达式或者右表达式的值，返回1或返回0要怎么做
+        return ref(var);
     }
 
     @Override
@@ -572,15 +615,14 @@ public class IRGenerator implements ASTVisitor<Void, Expr> {
 
     @Override
     public Expr visit(ArefNode node) {
-        Expr base = addressOf(transformExpr(node.expr()));
+        Expr base = addressOf(transformExpr(node.baseExpr()));
         Expr index = transformIndex(node);
         Expr offset = new Bin(int_t(), Op.MUL, new Int(int_t(), node.elementSize()), index);
         Expr addr = new Bin(ptr_t(), Op.ADD, base, offset);
-        return node.isLoadable() ? mem(addr, node.type()) : addr;
+        return mem(addr, node.type());
     }
 
     private Expr transformIndex(ArefNode node) {
-        //TODO 没搞懂
         if (node.isMultiDimension()) {
             return new Bin(int_t(), Op.ADD,
                     transformExpr(node.index()),
@@ -622,9 +664,9 @@ public class IRGenerator implements ASTVisitor<Void, Expr> {
         Expr call = new Call(asmType(node.type()), transformExpr(node.nameExpr()), args);
         if(isStatement()) {
             stmts.add(new ExprStmt(node.location(), call));
+            return null;
         }
         else {
-            //TODO 这里为什么不直接返回 call,而是先赋值给一个临时变量,再返回
             DefinedVariable tmp = tmpVar(node.type());
             assign(node.location(), ref(tmp), call);
             return ref(tmp);
@@ -646,14 +688,27 @@ public class IRGenerator implements ASTVisitor<Void, Expr> {
 
     @Override
     public Expr visit(CastNode node) {
-        Expr expr = transformExpr(node.expr());
-        return mem(addressOf(expr), node.castType().type());
+        if(node.isEffectiveCast()) {
+            return new Uni(asmType(node.expr().type()), node.type().isSigned() ? Op.S_CAST : Op.U_CAST, transformExpr(node.expr()));
+        }
+        else if(isStatement()) {
+            transformExpr(node.expr());
+            return null;
+        }
+        else {
+            return transformExpr(node.expr());
+        }
     }
 
     @Override
     public Expr visit(SizeofExprNode node) {
         transformExpr(node.expr());
-        return new Int(size_t(), node.expr().type().size());
+        if(! node.expr().type().isArray()) {
+            return new Int(size_t(), node.expr().type().size());
+        }
+        else {
+            return new Int(size_t(), node.expr().type().getArrayType().length() * typeTable.pointerSize());
+        }
     }
 
     private com.dddong.net.asm.Type size_t() {
@@ -667,6 +722,9 @@ public class IRGenerator implements ASTVisitor<Void, Expr> {
 
     @Override
     public Expr visit(VariableNode node) {
+        if(node.type() instanceof FunctionType) {
+            return new Var(ptr_t(), node.entity());
+        }
         return new Var(asmType(node.type()), node.entity());
     }
 

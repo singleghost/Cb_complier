@@ -1,8 +1,6 @@
 package com.dddong.net.ir;
 
 import com.dddong.net.asm.Label;
-import com.dddong.net.ast.Dumpable;
-import com.dddong.net.ast.Dumper;
 
 /**
  * Created by dddong on 2017/5/27.
@@ -20,6 +18,6 @@ public class Case implements Dumpable {
     public void dump(Dumper d) {
         d.printClass(this);
         d.printMember("value", value);
-//        d.printMember("label", label);
+        d.printMember("label", label);
     }
 }

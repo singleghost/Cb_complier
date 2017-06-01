@@ -1,3 +1,8 @@
+import stdio;
+
+int add(int a, int b) {
+    return a + b;
+}
 int main(void){
     int i;
     int x = 0;

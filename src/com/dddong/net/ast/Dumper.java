@@ -1,5 +1,7 @@
 package com.dddong.net.ast;
 
+import com.dddong.net.entity.DefinedFunction;
+import com.dddong.net.entity.DefinedVariable;
 import com.dddong.net.ir.Expr;
 import com.dddong.net.type.Type;
 import com.dddong.net.type.TypeRef;
@@ -107,5 +109,14 @@ public class Dumper {
     public void printClass(Object obj) {
         printIndent();
         stream.println(ANSI_RED + "<<" + obj.getClass().getSimpleName() + ">>" + ANSI_RESET);
+    }
+
+    public void printVars(String name, List<DefinedVariable> defvars) {
+        printNodeList(name, defvars);
+
+    }
+
+    public void printFuncs(String name, List<DefinedFunction> defuns) {
+        printNodeList(name, defuns);
     }
 }

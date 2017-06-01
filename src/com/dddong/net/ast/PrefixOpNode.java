@@ -11,4 +11,8 @@ public class PrefixOpNode extends UnaryArithmeticOpNode {
     }
 
 
+    @Override
+    public <S, E> E accept(ASTVisitor<S, E> visitor) {
+        return visitor.visit(this);
+    }
 }

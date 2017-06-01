@@ -1,7 +1,6 @@
 package com.dddong.net.ir;
 
 import com.dddong.net.asm.Label;
-import com.dddong.net.ast.Dumper;
 import com.dddong.net.ast.Location;
 
 /**
@@ -22,8 +21,8 @@ public class CJump extends Stmt {
     @Override
     protected void _dump(Dumper d) {
         d.printMember("cond", cond);
-//        d.printMember("thenLabel", thenLabel);
-//        d.printMember("elseLabel", elseLabel);
+        d.printMember("thenLabel", thenLabel);
+        d.printMember("elseLabel", elseLabel);
     }
 
     public Expr cond() {

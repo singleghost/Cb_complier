@@ -22,11 +22,6 @@ public class AddressNode extends ExprNode {
         return type;
     }
 
-    @Override
-    public <S, E> E accept(ASTVisitor<S, E> visitor) {
-        return visitor.visit(this);
-    }
-
     /** Decides type of this node.
      * This method is called from DereferenceChecker. */
     public void setType(Type type) {
@@ -43,6 +38,11 @@ public class AddressNode extends ExprNode {
             d.printMember("type", type);
         }
         d.printMember("expr", expr);
+    }
+
+    @Override
+    public <S, E> E accept(ASTVisitor<S, E> visitor) {
+        return visitor.visit(this);
     }
 
 

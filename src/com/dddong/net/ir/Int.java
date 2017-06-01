@@ -1,7 +1,6 @@
 package com.dddong.net.ir;
 
 import com.dddong.net.asm.Type;
-import com.dddong.net.ast.Dumper;
 
 /**
  * Created by dddong on 2017/5/28.
@@ -21,5 +20,10 @@ public class Int extends Expr {
 
     public long value() {
         return value;
+    }
+
+    @Override
+    public boolean isInt() {
+        return true;
     }
 }

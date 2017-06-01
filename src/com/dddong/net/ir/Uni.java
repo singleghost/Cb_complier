@@ -1,7 +1,6 @@
 package com.dddong.net.ir;
 
 import com.dddong.net.asm.Type;
-import com.dddong.net.ast.Dumper;
 
 /**
  * Created by dddong on 2017/5/27.
@@ -18,6 +17,12 @@ public class Uni extends Expr {
 
     @Override
     protected void _dump(Dumper d) {
+        d.printMember("op", op.toString());
+        d.printMember("expr", expr);
+    }
 
+    @Override
+    public boolean isUni() {
+        return true;
     }
 }

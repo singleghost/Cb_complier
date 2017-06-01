@@ -45,10 +45,6 @@ public class TypeResolver extends Visitor implements DeclarationVisitor<Void>, E
         errorHandler.error(def.location(), s);
     }
 
-    private void visitExpr(ExprNode exprNode) {
-        exprNode.accept(this);
-    }
-
     private void bindType(TypeNode node) {
         if (node.isResolved()) return;
         Type type = typeTable.get(node.typeRef());
@@ -156,115 +152,6 @@ public class TypeResolver extends Visitor implements DeclarationVisitor<Void>, E
         return null;
     }
 
-
-    //visit exprs
-    @Override
-    public Void visit(AssignNode node) {
-        visitExpr(node.lhs());
-        visitExpr(node.rhs());
-        return null;
-    }
-
-    @Override
-    public Void visit(OpAssignNode node) {
-        visitExpr(node.lhs());
-        visitExpr(node.rhs());
-        return null;
-    }
-
-    @Override
-    public Void visit(CondExprNode node) {
-        visitExpr(node.cond());
-        visitExpr(node.trueExpr());
-        visitExpr(node.falseExpr());
-        return null;
-    }
-
-    @Override
-    public Void visit(LogicalOrNode node) {
-        visitExpr(node.left());
-        visitExpr(node.right());
-        return null;
-    }
-
-    @Override
-    public Void visit(LogicalAndNode node) {
-        visitExpr(node.left());
-        visitExpr(node.right());
-        return null;
-    }
-
-    @Override
-    public Void visit(BinaryOpNode node) {
-        visitExpr(node.left());
-        visitExpr(node.right());
-        return null;
-    }
-
-    @Override
-    public Void visit(UnaryOpNode node) {
-        visitExpr(node.expr());
-        return null;
-    }
-
-    @Override
-    public Void visit(PrefixOpNode node) {
-        visitExpr(node.expr());
-        return null;
-    }
-
-    @Override
-    public Void visit(SuffixOpNode node) {
-        visitExpr(node.expr());
-        return null;
-    }
-
-    @Override
-    public Void visit(ArefNode node) {
-        visitExpr(node.expr());
-        visitExpr(node.index());
-        return null;
-    }
-
-    @Override
-    public Void visit(MemberNode node) {
-        visitExpr(node.expr());
-        return null;
-    }
-
-    @Override
-    public Void visit(PtrMemberNode node) {
-        visitExpr(node.expr());
-        return null;
-    }
-
-    @Override
-    public Void visit(FuncallNode node) {
-        visitExpr(node.nameExpr());
-        for(ExprNode expr : node.args()) {
-            visitExpr(expr);
-        }
-        return null;
-    }
-
-    @Override
-    public Void visit(DereferenceNode node) {
-        visitExpr(node.expr());
-        return null;
-    }
-
-    @Override
-    public Void visit(AddressNode node) {
-        visitExpr(node.expr());
-        return null;
-    }
-
-    @Override
-    public Void visit(SizeofExprNode node) {
-        visitExpr(node.expr());
-        return null;
-    }
-
     @Override
     public Void visit(SizeofTypeNode node) {
         bindType(node.operandTypeNode());
@@ -272,11 +159,6 @@ public class TypeResolver extends Visitor implements DeclarationVisitor<Void>, E
         return null;
     }
 
-    @Override
-    public Void visit(VariableNode node) {
-//        node.type()
-        return super.visit(node);
-    }
 
     //visit stmts
     @Override
@@ -290,85 +172,4 @@ public class TypeResolver extends Visitor implements DeclarationVisitor<Void>, E
         return null;
     }
 
-    @Override
-    public Void visit(ExprStmtNode node) {
-        visitExpr(node.expr());
-        return null;
-    }
-
-    @Override
-    public Void visit(IfNode node) {
-        visitExpr(node.cond());
-        visitStmt(node.thenBody());
-        visitStmt(node.elseBody());
-        return null;
-    }
-
-    @Override
-    public Void visit(SwitchNode node) {
-        visitExpr(node.expr());
-        for(CaseNode caseNode : node.caseNodeList()) {
-            visit(caseNode);
-        }
-        return null;
-    }
-
-    @Override
-    public Void visit(CaseNode node) {
-        for(ExprNode expr : node.caseValues()) {
-            visitExpr(expr);
-        }
-        visit(node.body());
-        return null;
-    }
-
-    @Override
-    public Void visit(WhileNode node) {
-        visitExpr(node.condExpr());
-        visitStmt(node.body());
-        return null;
-    }
-
-    @Override
-    public Void visit(DoWhileNode node) {
-        visitExpr(node.expr());
-        visitStmt(node.body());
-        return null;
-    }
-
-    @Override
-    public Void visit(ForNode node) {
-        visitExpr(node.initExpr());
-        visitExpr(node.condExpr());
-        visitExpr(node.actionExpr());
-        visitStmt(node.bodyStmt());
-        return null;
-    }
-
-    @Override
-    public Void visit(BreakNode node) {
-        return super.visit(node);
-    }
-
-    @Override
-    public Void visit(ContinueNode node) {
-        return super.visit(node);
-    }
-
-    @Override
-    public Void visit(GotoNode node) {
-        return super.visit(node);
-    }
-
-    @Override
-    public Void visit(LabelNode node) {
-        visitStmt(node.stmt());
-        return null;
-    }
-
-    @Override
-    public Void visit(ReturnNode node) {
-        visitExpr(node.expr());
-        return null;
-    }
 }

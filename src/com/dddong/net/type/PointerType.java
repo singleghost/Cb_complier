@@ -32,21 +32,9 @@ public class PointerType extends Type {
         return size;
     }
 
-    @Override
-    public boolean isSameType(Type other) {
-        if(! (other.isPointer())) return false;
-        return baseType.isSameType(other.getPointerType().baseType());
-    }
 
     @Override
-    public boolean isCompatible(Type other) {
-        //TODO
-        return false;
-    }
-
-    @Override
-    public boolean isCastableTo(Type target) {
-        //TODO
-        return false;
+    public String toString() {
+        return baseType.toString() + "*";
     }
 }

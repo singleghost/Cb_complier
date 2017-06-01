@@ -52,4 +52,8 @@ public class MemberNode extends LHSNode {
     public long offset() {
         return expr.type().getCompositeType().memberOffset(name);
     }
+
+    public String name() {
+        return name;
+    }
 }

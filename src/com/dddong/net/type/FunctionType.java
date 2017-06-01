@@ -22,28 +22,16 @@ public class FunctionType extends Type {
         return true;
     }
 
-    @Override
-    public boolean isSameType(Type other) {
-        if(! other.isFunction()) return false;
-        FunctionType functionType = other.getFunctionType();
-        return returnType.isSameType(functionType.returnType) && paramTypes.isSameType(functionType.paramTypes);
-    }
-
-    @Override
-    public boolean isCompatible(Type other) {
-        return false;
-    }
-
-    @Override
-    public boolean isCastableTo(Type target) {
-        return false;
-    }
-
     public Type returnType() {
         return returnType;
     }
 
     public void setReturnType(Type returnType) {
         this.returnType = returnType;
+    }
+
+    @Override
+    public String toString() {
+        return returnType.toString() + " (" + paramTypes.toString() + ")";
     }
 }

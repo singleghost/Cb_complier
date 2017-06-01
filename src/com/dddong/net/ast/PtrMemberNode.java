@@ -40,10 +40,14 @@ public class PtrMemberNode extends LHSNode {
         return baseType().memberType(name);
     }
 
-    private CompositeType baseType() {
+    public CompositeType baseType() {
         return expr().type().getPointerType().baseType().getCompositeType();
     }
     public long offset() {
         return baseType().memberOffset(name);
+    }
+
+    public String name() {
+        return name;
     }
 }

@@ -1,7 +1,5 @@
 package com.dddong.net.ir;
 
-import com.dddong.net.ast.Dumpable;
-import com.dddong.net.ast.Dumper;
 import com.dddong.net.ast.Location;
 
 /**

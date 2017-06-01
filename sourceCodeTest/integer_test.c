@@ -13,5 +13,6 @@ unsigned short m = 9000UL;
 unsigned char n = 9;
 char o = 0x30;
 int main(void) {
-    printf("aaa");
+    int asdf = 100;
+//    printf("aaa");
 }

@@ -1,6 +1,7 @@
 package com.dddong.net.ast;
 
 import com.dddong.net.entity.*;
+import com.dddong.net.ir.IR;
 
 import java.io.PrintStream;
 import java.util.ArrayList;
@@ -71,44 +72,44 @@ public class AST extends Node {
     }
 
     // called by LocalResolver
-//    public void setScope(ToplevelScope scope) {
-//        if (this.scope != null) {
-//            throw new Error("must not happen: ToplevelScope set twice");
-//        }
-//        this.scope = scope;
-//    }
+    public void setScope(ToplevelScope scope) {
+        if (this.scope != null) {
+            throw new Error("must not happen: ToplevelScope set twice");
+        }
+        this.scope = scope;
+    }
 
-//    public ToplevelScope scope() {
-//        if (this.scope == null) {
-//            throw new Error("must not happen: AST.scope is null");
-//        }
-//        return scope;
-//    }
-//
-//    // called by LocalResolver
-//    public void setConstantTable(ConstantTable table) {
-//        if (this.constantTable != null) {
-//            throw new Error("must not happen: ConstantTable set twice");
-//        }
-//        this.constantTable = table;
-//    }
-//
-//    public ConstantTable constantTable() {
-//        if (this.constantTable == null) {
-//            throw new Error("must not happen: AST.constantTable is null");
-//        }
-//        return constantTable;
-//    }
-//
-//    public IR ir() {
-//        return new IR(source,
-//                declarations.defvars(),
-//                declarations.defuns(),
-//                declarations.funcdecls(),
-//                scope,
-//                constantTable);
-//    }
-//
+    public ToplevelScope scope() {
+        if (this.scope == null) {
+            throw new Error("must not happen: AST.scope is null");
+        }
+        return scope;
+    }
+
+    // called by LocalResolver
+    public void setConstantTable(ConstantTable table) {
+        if (this.constantTable != null) {
+            throw new Error("must not happen: ConstantTable set twice");
+        }
+        this.constantTable = table;
+    }
+
+    public ConstantTable constantTable() {
+        if (this.constantTable == null) {
+            throw new Error("must not happen: AST.constantTable is null");
+        }
+        return constantTable;
+    }
+
+    public IR ir() {
+        return new IR(source,
+                declarations.defvars(),
+                declarations.defuns(),
+                declarations.funcdecls(),
+                scope(),
+                constantTable());
+    }
+
     protected void _dump(Dumper d) {
         d.printNodeList("constant", constants());
         d.printNodeList("undefinedVariables", declarations.vardecls());
@@ -132,7 +133,7 @@ public class AST extends Node {
         }
         s.println(value);
     }
-//
+
     public StmtNode getSingleMainStmt() {
         for (DefinedFunction f : definedFunctions()) {
             if (f.name().equals("main")) {
@@ -149,23 +150,13 @@ public class AST extends Node {
         StmtNode stmt = getSingleMainStmt();
         if (stmt == null) {
             return null;
-        }
-        else if (stmt instanceof ExprStmtNode) {
-            return ((ExprStmtNode)stmt).expr();
-        }
-        else if (stmt instanceof ReturnNode) {
-            return ((ReturnNode)stmt).expr();
-        }
-        else {
+        } else if (stmt instanceof ExprStmtNode) {
+            return ((ExprStmtNode) stmt).expr();
+        } else if (stmt instanceof ReturnNode) {
+            return ((ReturnNode) stmt).expr();
+        } else {
             return null;
         }
     }
-
-    public void setScope(ToplevelScope scope) {
-        this.scope = scope;
-    }
-
-    public void setConstantTable(ConstantTable constantTable) {
-        this.constantTable = constantTable;
-    }
 }
+

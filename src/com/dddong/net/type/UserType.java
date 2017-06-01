@@ -29,22 +29,12 @@ public class UserType extends NamedType {
     }
 
     @Override
-    public boolean isSameType(Type other) {
-        return false;
-    }
-
-    @Override
-    public boolean isCompatible(Type other) {
-        return false;
-    }
-
-    @Override
-    public boolean isCastableTo(Type target) {
-        return false;
-    }
-
-    @Override
     public boolean isVoid() {
         return realType().isVoid();
+    }
+
+    @Override
+    public boolean isUserType() {
+       return true;
     }
 }

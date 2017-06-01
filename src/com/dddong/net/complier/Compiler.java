@@ -2,6 +2,7 @@ package com.dddong.net.complier;
 
 import com.dddong.net.ast.AST;
 import com.dddong.net.ast.Dumper;
+import com.dddong.net.ir.IR;
 import com.dddong.net.parser.LibraryLoader;
 import com.dddong.net.parser.Parser;
 import com.dddong.net.type.TypeTable;
@@ -33,11 +34,16 @@ public class Compiler {
                 TypeTable typeTable = TypeTable.ilp32();
                 TypeResolver typeResolver = new TypeResolver(typeTable, errorHandler);
                 StaticTypeChecker typeChecker = new StaticTypeChecker(errorHandler, typeTable);
-
+                DereferenceChecker dereferenceChecker = new DereferenceChecker(typeTable, errorHandler);
                 localResolver.resolve(ast); //变量引用的消解
                 typeResolver.resolve(ast);  //类型的消解
 
                 typeChecker.semanticCheck();
+                dereferenceChecker.check(ast);
+
+                IRGenerator irGenerator = new IRGenerator(errorHandler, typeTable);
+                IR ir = irGenerator.generate(ast);
+                ir.dump();
             } catch (Exception ex) {
 //                System.err.println(ex.getMessage());
                 System.out.flush();

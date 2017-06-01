@@ -60,8 +60,4 @@ public class ArefNode extends LHSNode {
         return visitor.visit(this);
     }
 
-//    public <S,E> E accept(ASTVisitor<S,E> visitor) {
-//        return visitor.visit(this);
-//    }
-
 }

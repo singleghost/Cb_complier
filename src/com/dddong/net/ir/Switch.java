@@ -1,7 +1,6 @@
 package com.dddong.net.ir;
 
 import com.dddong.net.asm.Label;
-import com.dddong.net.ast.Dumper;
 import com.dddong.net.ast.Location;
 
 import java.util.List;
@@ -24,6 +23,9 @@ public class Switch extends Stmt {
 
     @Override
     protected void _dump(Dumper d) {
-        //TODO
+        d.printMember("cond", cond);
+        d.printMembers("cases", cases);
+        d.printMember("defaultLabel", defaultLabel);
+        d.printMember("endLabel", endLabel);
     }
 }

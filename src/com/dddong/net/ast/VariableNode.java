@@ -47,4 +47,9 @@ public class VariableNode extends LHSNode {
     public Entity entity() {
         return entity;
     }
+
+    @Override
+    public boolean isCallable() {
+        return entity.type().isFunction();
+    }
 }

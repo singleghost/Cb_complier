@@ -42,4 +42,13 @@ public class UnionType extends CompositeType {
     public long memberOffset(String member) {
         return 0;
     }
+
+    @Override
+    public boolean hasMember(String memb) {
+        for(Slot s : members()) {
+            if(s.name().equals(memb)) return true;
+        }
+
+        return false;
+    }
 }

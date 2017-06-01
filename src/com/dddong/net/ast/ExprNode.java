@@ -1,5 +1,6 @@
 package com.dddong.net.ast;
 
+import com.dddong.net.exception.SemanticError;
 import com.dddong.net.type.Type;
 
 /**
@@ -23,4 +24,14 @@ abstract public class ExprNode extends Node {
     public boolean isLoadable() { return false; }
 
     abstract public <S,E> E accept(ASTVisitor<S,E> visitor);
+
+    public boolean isPointer() {
+        try {
+            return type().isPointer();
+        } catch (SemanticError err) {
+            return false;
+        }
+    };
+
+    public boolean isCallable() { return false; }
 }

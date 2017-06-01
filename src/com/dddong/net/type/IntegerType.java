@@ -24,25 +24,17 @@ public class IntegerType extends Type {
     }
 
     @Override
-    public boolean isSameType(Type other) {
-        if(!other.isInteger()) return false;
-        return equals(other.getIntegerType());  //TODO: 疑问,这里为什么使用默认的 equals,默认的 equals 不是比较的两个引用吗
-    }
-
-    @Override
-    public boolean isCompatible(Type other) {
-        //TODO
-        return false;
-    }
-
-    @Override
-    public boolean isCastableTo(Type target) {
-        //TODO
-        return false;
-    }
-
-    @Override
     public boolean isSigned() {
         return isSigned;
+    }
+
+    @Override
+    public String toString() {
+        return typename;
+    }
+
+    @Override
+    public boolean isInt() {
+        return true;
     }
 }

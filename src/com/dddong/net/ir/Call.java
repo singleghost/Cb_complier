@@ -1,7 +1,6 @@
 package com.dddong.net.ir;
 
 import com.dddong.net.asm.Type;
-import com.dddong.net.ast.Dumper;
 
 import java.util.List;
 
@@ -21,6 +20,11 @@ public class Call extends Expr {
     @Override
     protected void _dump(Dumper d) {
         d.printMember("funcExpr", funcExpr);
-        d.printNodeList("args", args);
+        d.printMembers("args", args);
+    }
+
+    @Override
+    public boolean isCall() {
+        return true;
     }
 }

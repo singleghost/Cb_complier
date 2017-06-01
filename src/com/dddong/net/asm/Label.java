@@ -6,7 +6,7 @@ package com.dddong.net.asm;
 public class Label extends Assembly {
     @Override
     public String dump() {
-        return null;
+        return Integer.toHexString(hashCode());
     }
 
     @Override

@@ -16,21 +16,6 @@ public class StructType extends CompositeType {
     }
 
     @Override
-    public boolean isSameType(Type other) {
-        return false;
-    }
-
-    @Override
-    public boolean isCompatible(Type other) {
-        return false;
-    }
-
-    @Override
-    public boolean isCastableTo(Type target) {
-        return false;
-    }
-
-    @Override
     protected void computeOffsets() {
         long offset = 0;
         long maxAlign = 1;
@@ -59,5 +44,18 @@ public class StructType extends CompositeType {
             }
         }
         throw new SemanticError("no such member " + member + "in " + this);
+    }
+
+    @Override
+    public boolean isStruct() {
+        return true;
+    }
+
+    @Override
+    public boolean hasMember(String memb) {
+        for(Slot s : members()) {
+            if(s.name().equals(memb)) return true;
+        }
+        return false;
     }
 }

@@ -29,7 +29,6 @@ public class FuncallNode extends ExprNode {
     }
 
     FunctionType functionType() {
-        //TODO 这里还有疑问,如果无法转换成PointerType岂不是要报错?
         return nameExpr.type().getPointerType().baseType().getFunctionType();
     }
 

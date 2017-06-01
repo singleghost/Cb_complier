@@ -53,14 +53,69 @@ public enum Op {
             case "<=":
                 if(signed) return S_LTEQ;
                 else return U_LTEQ;
+            default:
+                throw new Error("must not happen");
         }
     }
     @Override
     public String toString() {
         switch (this) {
-            //TODO
             case ADD:
                 return "ADD";
+            case SUB:
+                return "SUB";
+            case MUL:
+                return "MUL";
+            case S_DIV:
+                return "S_DIV";
+            case U_DIV:
+                return "U_DIV";
+            case S_MOD:
+                return "S_MOD";
+            case U_MOD:
+                return "U_MOD";
+            case BIT_AND:
+                return "BIT_AND";
+            case BIT_OR:
+                return "BIT_OR";
+            case BIT_XOR:
+                return "BIT_XOR";
+            case BIT_LSHIFT:
+                return "BIT_LSHIFT";
+            case BIT_RSHIFT:
+                return "BIT_RSHIFT";
+            case ARITH_RSHIFT:
+                return "ARITH_RSHIFT";
+            case EQ:
+                return "EQ";
+            case NEQ:
+                return "NEQ";
+            case S_GT:
+                return "S_GT";
+            case S_GTEQ:
+                return "S_GTEQ";
+            case S_LT:
+                return "S_LT";
+            case S_LTEQ:
+                return "S_LTEQ";
+            case U_GT:
+                return "U_GT";
+            case U_GTEQ:
+                return "U_GTEQ";
+            case U_LT:
+                return "U_LT";
+            case U_LTEQ:
+                return "U_LTEQ";
+            case UMINUS:
+                return "UMINUS";
+            case BIT_NOT:
+                return "BIT_NOT";
+            case NOT:
+                return "NOT";
+            case S_CAST:
+                return "S_CAST";
+            case U_CAST:
+                return "U_CAST";
             default:
                 throw new Error("must not happen");
         }

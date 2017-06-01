@@ -8,7 +8,7 @@ int main(void){
             if(a == 1000) goto LABEL_END;
         }
 
-    return add(1, 2);
+    return 100;
     LABEL_END:
         return 0;
 

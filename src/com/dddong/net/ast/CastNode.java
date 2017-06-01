@@ -42,4 +42,9 @@ public class CastNode extends ExprNode {
     public TypeNode castType() {
         return castType;
     }
+
+    public boolean isEffectiveCast() {
+
+        return type().size() > expr().type().size();
+    }
 }

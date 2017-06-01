@@ -1,7 +1,6 @@
 package com.dddong.net.ir;
 
 import com.dddong.net.asm.Type;
-import com.dddong.net.ast.Dumper;
 import com.dddong.net.entity.DefinedVariable;
 import com.dddong.net.entity.Entity;
 
@@ -18,7 +17,7 @@ public class Var extends Expr {
 
     @Override
     protected void _dump(Dumper d) {
-        d.printMember("entity", entity);
+        d.printMember("entity", entity.name());
     }
 
     @Override

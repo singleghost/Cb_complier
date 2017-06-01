@@ -1,3 +1,4 @@
+import stdlib;
 int
 main(int argc, char **argv)
 {

@@ -9,22 +9,7 @@ public class VoidType extends Type {
 
     @Override
     public long size() {
-        return 1;//TODO 疑问
-    }
-
-    @Override
-    public boolean isSameType(Type other) {
-        return other.isVoid();
-    }
-
-    @Override
-    public boolean isCompatible(Type other) {
-        return other.isVoid();
-    }
-
-    @Override
-    public boolean isCastableTo(Type target) {
-        return target.isVoid();
+        return 1;
     }
 
     @Override

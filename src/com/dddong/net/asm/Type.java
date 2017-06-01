@@ -21,6 +21,22 @@ public enum Type {
         }
     }
 
+    @Override
+    public String toString() {
+        switch (this) {
+            case INT8:
+                return "INT8";
+            case INT16:
+                return "INT16";
+            case INT32:
+                return "INT32";
+            case INT64:
+                return "INT64";
+            default:
+                throw new Error("must not happen");
+        }
+    }
+
     public int size() {
         switch (this) {
             case INT8:

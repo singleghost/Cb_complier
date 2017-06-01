@@ -9,7 +9,7 @@ struct ASD {
     int fd;
 };
 
-typedef struct CC CC;
+//typedef struct CC CC;
 
 int main(void){
 

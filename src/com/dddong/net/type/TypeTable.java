@@ -203,4 +203,8 @@ public class TypeTable {
     public int pointerSize() {
         return pointerSize;
     }
+
+    public PointerType pointerTo(Type base) {
+        return new PointerType(pointerSize(), base);
+    }
 }
